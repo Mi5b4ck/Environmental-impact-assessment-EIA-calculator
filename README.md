@@ -73,11 +73,11 @@ Sharing works like Canva. Each assessment shows who created it, who can edit it 
 
 The creator opens **Share** on the assessment to:
 
-- add people by name or email, as **Can edit** or **Can view** (they need an account first)
+- tap the search box to list everyone in the app, or type any part of a name or email to narrow it, then tap a person (or press Enter) to add them as **Can edit** or **Can view**
 - change or remove someone's access
 - set **general access**: *Only people with access* (private), *Everyone in the app · Can view* (the default), or *Everyone in the app · Can edit*
 
-These rules are enforced by the database, not just the screen. Editors can change an assessment's content but not its owner or sharing; only the creator can change sharing (through the `set_assessment_sharing` function) or delete it. People can be found by exact email through `find_user_by_email`, which returns only a name and id.
+These rules are enforced by the database, not just the screen. Editors can change an assessment's content but not its owner or sharing; only the creator can change sharing (through the `set_assessment_sharing` function) or delete it. The Share search uses `search_app_users`, which only signed-in users can call; it shows names and emails of people with an account, so everyone in the app can see each other's email in that list.
 
 History has filters for **All**, **Created by me** and **Shared with me**.
 

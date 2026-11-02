@@ -104,6 +104,24 @@ $$;
 revoke all on function public.find_user_by_email(text) from public, anon;
 grant execute on function public.find_user_by_email(text) to authenticated;
 
+-- List people in the app for the Share window, filtered by any part of
+-- their name or email. Only signed-in users can call it.
+create or replace function public.search_app_users(p_q text default '')
+returns table(id uuid, display_name text, email text)
+language sql stable security definer set search_path = public, auth as $$
+  select u.id, coalesce(p.display_name, ''), u.email::text
+    from auth.users u left join public.profiles p on p.id = u.id
+   where auth.uid() is not null
+     and u.id <> auth.uid()
+     and (coalesce(trim(p_q), '') = ''
+          or position(lower(trim(p_q)) in lower(coalesce(p.display_name, ''))) > 0
+          or position(lower(trim(p_q)) in lower(coalesce(u.email, ''))) > 0)
+   order by lower(coalesce(nullif(p.display_name, ''), u.email))
+   limit 50;
+$$;
+revoke all on function public.search_app_users(text) from public, anon;
+grant execute on function public.search_app_users(text) to authenticated;
+
 -- Live co-editing ---------------------------------------------------------
 -- Every change is sent as a small operation (set one score, rename one
 -- impact, add or remove an impact...) and applied inside the database while
