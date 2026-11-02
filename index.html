@@ -286,6 +286,17 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 .dot.unscored::after{display:none}
 .hm-note{font-size:13px;margin:12px 0 0;color:var(--fg)}
 .hm-mv{color:var(--muted);font-family:var(--f-mono);font-size:12px}
+td.chg{box-shadow:inset 0 0 0 2px var(--fg)}
+td.chg sup{font-size:9px;margin-left:2px}
+sup.dn,.hm-note .dn{color:var(--low)} sup.up,.hm-note .up{color:var(--high)}
+tr.unscored td{opacity:.55}
+td.mx-none{font-family:var(--f-body);font-size:12px;color:var(--muted);font-weight:500}
+td.mx-down{color:var(--low);font-weight:700} td.mx-up{color:var(--high);font-weight:700}
+table.mx{table-layout:fixed}
+table.mx col.c-name{width:29%} table.mx col.c-k{width:6.6%} table.mx col.c-h{width:12%} table.mx col.c-h2{width:12.8%}
+table.mx td.name{max-width:none}
+.mx-pair{display:grid;gap:8px}
+.mx-pair h4{margin:6px 0 0;font-size:13px}
 .hm-key{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:13px}
 .hm-key span{display:inline-flex;gap:6px;align-items:center}
 .hm-key .dot{width:18px;height:18px;font-size:10px;display:grid;place-items:center;flex:none}
@@ -761,6 +772,35 @@ function beforeAfterHTML(imps){
     <div class="ba-num">${x.h.toLocaleString()} <span class="arrow">→</span> ${x.r.toLocaleString()}<span class="drop ${d<0?"up":""}">${d>0?"−"+d+"%":d<0?"+"+(-d)+"%":"no change"}</span></div>
   </div>`;}).join("")}</div><div class="legend"><span class="tag">Top bar: current</span><span class="tag">Bottom bar: after measures</span></div>`;
 }
+/* Evaluation matrix: current scores, after-mitigation scores, or both */
+function matrixTable(imps, which){
+  const after = which==="after";
+  const maxOf = k => Math.max(...CRITERIA.find(c=>c.k===k).opts.map(o=>o[1]));
+  const head = `<tr><th>Impact</th>${CRITERIA.map(c=>`<th title="${esc(c.name)}">${c.k}${after?"′":""}</th>`).join("")}${after ? `<th title="Significance after mitigation">H′</th><th>Change</th>` : `<th>H</th><th title="After mitigation">H′</th>`}</tr>`;
+  const body = imps.map(i=>{
+    const sel = after ? (i.rsel || i.sel) : i.sel, unscored = after && !i.rsel;
+    const h = H(i.sel), r = i.rsel ? H(i.rsel) : null;
+    const cells = CRITERIA.map(c=>{
+      const v = scoreOf(c.k, sel[c.k]), pr = (v-1)/Math.max(1, maxOf(c.k)-1), was = scoreOf(c.k, i.sel[c.k]);
+      const chg = after && i.rsel && v !== was;
+      return `<td class="heat${chg?" chg":""}" style="--p:${pr.toFixed(2)}"${chg?` title="${c.k}: was ${was}, now ${v}"`:""}>${v}${chg?`<sup class="${v<was?"dn":"up"}">${v<was?"▼":"▲"}</sup>`:""}</td>`;
+    }).join("");
+    const tail = after
+      ? (unscored ? `<td>—</td><td class="mx-none">No residual score</td>` : `<td class="h ${band(r)}">${r.toLocaleString()}</td><td class="${pct(h,r)>0?"mx-down":pct(h,r)<0?"mx-up":""}">${pct(h,r)>0?"−"+pct(h,r)+"%":pct(h,r)<0?"+"+(-pct(h,r))+"%":"No change"}</td>`)
+      : `<td class="h ${band(h)}">${h.toLocaleString()}</td><td class="${r==null?"":"h "+band(r)}">${r==null?"—":r.toLocaleString()}</td>`;
+    return `<tr class="row${unscored?" unscored":""}" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span><small>${esc([catsOf(i).join(", "), phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${cells}${tail}</tr>`;
+  }).join("");
+  return `<div class="tbl-wrap"><table class="mx"><colgroup><col class="c-name">${CRITERIA.map(()=>`<col class="c-k">`).join("")}<col class="c-h"><col class="c-h2"></colgroup><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+function matrixHTML(imps, mode){
+  const scored = imps.filter(i=>i.rsel).length;
+  const note = mode==="now" ? "" : !scored
+    ? `<p class="hm-note">No residual scores yet. Open an impact and score it under <b>After mitigation</b>; rows without one show the current scores, faded.</p>`
+    : `<p class="hm-note">Scores that changed with mitigation are outlined: <span class="dn">▼</span> lower, <span class="up">▲</span> higher.${scored<imps.length?` ${imps.length-scored} impact${imps.length-scored>1?"s have":" has"} no residual score yet (faded).`:""}</p>`;
+  if (mode==="both") return `<div class="mx-pair"><h4>Current</h4>${matrixTable(imps,"now")}<h4>After mitigation</h4>${matrixTable(imps,"after")}</div>${note}`;
+  return matrixTable(imps, mode) + note;
+}
+
 /* Risk heatmap: A (magnitude) × D (severity), current or after mitigation */
 function hmGrid(ranked, rank, which){
   const selOf = i => which==="after" ? (i.rsel || i.sel) : i.sel;
@@ -960,9 +1000,7 @@ function detailHTML(full){
   const imps = a.impacts.slice().sort((x,y)=>H(y.sel)-H(x.sel));
   const phaseBar = full.impacts.length ? `<div class="phase-bar"><span class="lbl">Project phase</span><div class="seg" role="group" aria-label="Filter by phase">${["",...PHASES].map(x=>{ const n = x ? full.impacts.filter(i=>phasesOf(i).includes(x)).length : full.impacts.length; return `<button data-phase="${x}" aria-pressed="${ph===x}">${x||"All phases"} <span class="num" style="opacity:.6">${n}</span></button>`; }).join("")}</div></div>` : "";
   const maxOf = k => Math.max(...CRITERIA.find(c=>c.k===k).opts.map(o=>o[1]));
-  const table = imps.length ? `<div class="tbl-wrap"><table><thead><tr><th>Impact</th>${CRITERIA.map(c=>`<th title="${esc(c.name)}">${c.k}</th>`).join("")}<th>H</th><th title="After mitigation">H′</th></tr></thead><tbody>
-    ${imps.map(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):null; return `<tr class="row" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span><small>${esc([catsOf(i).join(", "), phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${CRITERIA.map(c=>{ const v=scoreOf(c.k,i.sel[c.k]); const pr=(v-1)/Math.max(1,maxOf(c.k)-1); return `<td class="heat" style="--p:${pr.toFixed(2)}">${v}</td>`;}).join("")}<td class="h ${band(h)}">${h.toLocaleString()}</td><td class="${r==null?"":"h "+band(r)}">${r==null?"—":r.toLocaleString()}</td></tr>`;}).join("")}
-  </tbody></table></div>` : `${ph && full.impacts.length ? `<div class="empty"><h3>No impacts in ${esc(ph)}</h3><div>None of this assessment's impacts are marked for the ${esc(ph.toLowerCase())} phase.</div></div>` : ""}${ph && full.impacts.length ? "" : `<div class="empty"><h3>No impacts yet</h3><div>${mine?"Add the first impact this project could cause, such as an emission, a discharge or a social effect.":"The author hasn't added impacts yet."}</div>${mine?`<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button>`:""}</div>`}`;
+  const table = imps.length ? matrixHTML(imps, S.hmMode||"now") : `${ph && full.impacts.length ? `<div class="empty"><h3>No impacts in ${esc(ph)}</h3><div>None of this assessment's impacts are marked for the ${esc(ph.toLowerCase())} phase.</div></div>` : ""}${ph && full.impacts.length ? "" : `<div class="empty"><h3>No impacts yet</h3><div>${mine?"Add the first impact this project could cause, such as an emission, a discharge or a social effect.":"The author hasn't added impacts yet."}</div>${mine?`<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button>`:""}</div>`}`;
   const st = a.status||"draft";
   const creator = isMine(full);
   const actions = (mine
@@ -993,11 +1031,12 @@ function detailHTML(full){
   <div class="dash-grid" style="margin-bottom:14px">
     <div class="panel hm-panel ${S.hmMode==="both"?"wide":""}"><div class="panel-h"><h3>Risk heatmap</h3>
       <div class="seg hm-seg" role="group" aria-label="Show heatmap">${[["now","Current"],["after","After mitigation"],["both","Side by side"]].map(([k,l])=>`<button data-hm="${k}" aria-pressed="${(S.hmMode||"now")===k}">${l}</button>`).join("")}</div></div>
-      <p class="hint" style="margin:-4px 0 10px">Magnitude (A) × severity (D) · tap a dot to open the impact</p>
+      <p class="hint" style="margin:-4px 0 10px">Magnitude (A) × severity (D) · tap a dot to open the impact · this switch also changes the evaluation matrix</p>
       ${heatmapHTML(a.impacts, S.hmMode||"now")}</div>
     <div class="panel ${S.hmMode==="both"?"wide":""}"><div class="panel-h"><h3>Before and after mitigation</h3>${s.scored?`<span class="hint">Total H down ${s.cut}%</span>`:""}</div>${beforeAfterHTML(a.impacts)}</div>
   </div>`:""}
-  <div class="panel"><div class="panel-h"><h3>Evaluation matrix</h3>${s.n?`<span class="hint">${mine?"Tap a row to edit":"Tap a row for details"}</span>`:""}</div>${table}</div>
+  <div class="panel"><div class="panel-h"><h3>Evaluation matrix</h3>${s.n?`<div class="seg hm-seg" role="group" aria-label="Show matrix">${[["now","Current"],["after","After mitigation"],["both","Side by side"]].map(([k,l])=>`<button data-hm="${k}" aria-pressed="${(S.hmMode||"now")===k}">${l}</button>`).join("")}</div>`:""}</div>
+    ${s.n?`<p class="hint" style="margin:-4px 0 10px">${mine?"Tap a row to edit":"Tap a row for details"} · this switch also changes the risk heatmap</p>`:""}${table}</div>
   ${s.n?`<div class="panel"><div class="panel-h"><h3>Control & mitigation</h3><span class="hint">Highest risk first${s.evidence?` · ${s.evidence} evidence file${s.evidence>1?"s":""}`:""}</span></div><div class="imp-list">${imps.map(i=>{const h=H(i.sel), r=i.rsel?H(i.rsel):null;return `<button class="imp" data-imp="${esc(i.id)}"><b>${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span></b><span class="chip ${band(h)}">${BAND_NAME[band(h)]} · ${h.toLocaleString()}${r!=null?` → ${r.toLocaleString()}`:""}</span>${phasesOf(i).length?`<span class="phase-row">${phaseTags(i)}</span>`:""}${i.notes?`<p>${esc(i.notes)}</p>`:""}<p>${i.mitigation?`<strong>Measures:</strong> ${esc(i.mitigation)}`:(band(h)==="high"?`<strong style="color:var(--high)">No measures recorded yet.</strong> High impacts need control or mitigation.`:"No measures recorded.")}</p>${evThumbs(i)}</button>`;}).join("")}</div></div>`:""}
   ${guideHTML()}`;
 }
@@ -1919,8 +1958,8 @@ async function saveFile(name, data, okMsg){
 }
 const fileBase = a => (a.title||"assessment").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").slice(0,60) || "assessment";
 function exportCSV(a){
-  const rows = [["Impact","Categories","Phase",...CRITERIA.map(c=>c.k+" "+c.name),"H","Band","H after mitigation","Band after","Notes","Mitigation","Evidence files"]];
-  a.impacts.forEach(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):""; rows.push([i.name,catsOf(i).join("; "),phasesOf(i).join("; "),...CRITERIA.map(c=>scoreOf(c.k,i.sel[c.k])),h,BAND_NAME[band(h)],r,r===""?"":BAND_NAME[band(r)],i.notes||"",i.mitigation||"",(i.evidence||[]).map(e=>e.name).join("; ")]); });
+  const rows = [["Impact","Categories","Phase",...CRITERIA.map(c=>c.k+" "+c.name),"H","Band",...CRITERIA.map(c=>c.k+" after mitigation"),"H after mitigation","Band after","Notes","Mitigation","Evidence files"]];
+  a.impacts.forEach(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):""; rows.push([i.name,catsOf(i).join("; "),phasesOf(i).join("; "),...CRITERIA.map(c=>scoreOf(c.k,i.sel[c.k])),h,BAND_NAME[band(h)],...CRITERIA.map(c=>i.rsel?scoreOf(c.k,i.rsel[c.k]):""),r,r===""?"":BAND_NAME[band(r)],i.notes||"",i.mitigation||"",(i.evidence||[]).map(e=>e.name).join("; ")]); });
   const csv = rows.map(r=>r.map(v=>{ const s=String(v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(",")).join("\n");
   saveFile(fileBase(a)+".csv", csv, "CSV saved");
 }
@@ -1954,7 +1993,7 @@ async function exportPDF(a, btn){
     y += 40;
     if (a.description){ doc.setFontSize(10); doc.setTextColor(27,28,21); const lines = doc.splitTextToSize(latin(a.description), W-2*M); doc.text(lines, M, y); y += lines.length*13 + 8; }
     doc.setFontSize(8.5); doc.setTextColor(95,98,86);
-    doc.text("Phase: C = Commissioning, O = Operation, D = Decommissioning.  H = A x B x C x D x E x F x G.  Bands: Low H < 25 · Medium 25-200 · High H > 200.  Max possible H = "+MAXH.toLocaleString()+".", M, y); y += 14;
+    { const lg = doc.splitTextToSize("Phase: C = Commissioning, O = Operation, D = Decommissioning.  H = A x B x C x D x E x F x G.  Bands: Low H < 25 · Medium 25-200 · High H > 200.  Max possible H = "+MAXH.toLocaleString()+".", W-2*M); doc.text(lg, M, y); y += lg.length*11 + 3; }
     const imps = a.impacts.slice().sort((x,z)=>H(z.sel)-H(x.sel));
     const bandCell = (data, col, getH) => { if (data.section==="body" && data.column.index===col){ const v = getH(data.row.index); if (v!=null){ const c = RGB[band(v)]; data.cell.styles.textColor = c; data.cell.styles.fontStyle = "bold"; } } };
     doc.autoTable({ startY:y, margin:{left:M,right:M}, head:[["Impact","Categories","Phase",...CRITERIA.map(c=>c.k),"H","Band","H'"]],
@@ -1963,6 +2002,20 @@ async function exportPDF(a, btn){
       headStyles:{fillColor:[27,28,21], textColor:[207,221,82]}, alternateRowStyles:{fillColor:[242,243,235]},
       didParseCell: d => { bandCell(d, 10, ix=>H(imps[ix].sel)); bandCell(d, 11, ix=>H(imps[ix].sel)); bandCell(d, 12, ix=>imps[ix].rsel?H(imps[ix].rsel):null); } });
     y = doc.lastAutoTable.finalY + 24;
+    if (imps.some(i=>i.rsel)){
+      if (y > 700){ doc.addPage(); y = 50; }
+      doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(27,28,21); doc.text("Evaluation matrix after mitigation", M, y);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(95,98,86); doc.text("Bold scores changed with mitigation. Impacts without a residual score show their current scores.", M, y+12); y += 18;
+      doc.autoTable({ startY:y, margin:{left:M,right:M}, head:[["Impact",...CRITERIA.map(c=>c.k+"'"),"H'","Band","Change"]],
+        body: imps.map(i=>{ const s2 = i.rsel||i.sel, h=H(i.sel), r=i.rsel?H(i.rsel):null; return [latin(i.name)+(i.rsel?"":" (not scored)"), ...CRITERIA.map(c=>scoreOf(c.k,s2[c.k])), r==null?"-":r.toLocaleString(), r==null?"-":BAND_NAME[band(r)], r==null?"-":(pct(h,r)>0?"-"+pct(h,r)+"%":pct(h,r)<0?"+"+(-pct(h,r))+"%":"0%")]; }),
+        styles:{fontSize:8.5, cellPadding:4, halign:"center"}, columnStyles:{0:{halign:"left", cellWidth:150}},
+        headStyles:{fillColor:[27,28,21], textColor:[207,221,82]}, alternateRowStyles:{fillColor:[242,243,235]},
+        didParseCell: d => { if (d.section!=="body") return; const i = imps[d.row.index];
+          if (d.column.index>=1 && d.column.index<=7 && i.rsel){ const k = CRITERIA[d.column.index-1].k; if (scoreOf(k,i.rsel[k])!==scoreOf(k,i.sel[k])) d.cell.styles.fontStyle = "bold"; }
+          if (!i.rsel) d.cell.styles.textColor = [150,152,140];
+          bandCell(d, 8, ix=>imps[ix].rsel?H(imps[ix].rsel):null); bandCell(d, 9, ix=>imps[ix].rsel?H(imps[ix].rsel):null); } });
+      y = doc.lastAutoTable.finalY + 24;
+    }
     if (y > 720){ doc.addPage(); y = 50; }
     doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(27,28,21); doc.text("Control and mitigation measures", M, y); y += 8;
     doc.autoTable({ startY:y, margin:{left:M,right:M}, head:[["Impact","H","Measures","H after","Change"]],

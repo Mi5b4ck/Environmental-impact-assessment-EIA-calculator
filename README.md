@@ -20,12 +20,12 @@ High impacts call for control or mitigation measures.
 - Canva-style sharing: the creator decides who can view and who can edit
 - Several categories per impact (for example Air, Water and Soil & land), and several project phases: commissioning, operation, decommissioning
 - Residual risk after mitigation, with before-and-after comparison
-- Risk heatmap (magnitude × severity) showing current risk, risk after mitigation, or both side by side, plus a significance chart and evaluation matrix
+- Evaluation matrix and risk heatmap (magnitude × severity), each showing current scores, scores after mitigation, or both side by side with one shared switch; changed scores are highlighted
 - Private analysis dashboard, saved to each user's account: filter by project, phase, category and status; headline figures and automatic key findings; charts you configure yourself (measure, grouping, split, chart type, scale), including Pareto, radar criteria fingerprint, heatmap and scatter; download each chart as PNG or CSV, or all charts as one PDF
 - Side-by-side compare view, also private and saved per user
 - Review status: Draft, Under review, Approved
 - Photo and file evidence for each impact
-- PDF report and CSV export
+- PDF report (with the evaluation matrix before and after mitigation) and CSV export (with current and residual A–G scores)
 - Light and dark themes; works on phones, tablets and computers
 
 ## Files
