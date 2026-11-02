@@ -71,7 +71,7 @@ Sharing works like Canva. Each assessment shows who created it, who can edit it 
 | Viewer (added with "Can view") | Yes | No | No | No |
 | Everyone else | Depends on general access | Only if general access is "Can edit" | No | No |
 
-The creator opens **Share** on the assessment to:
+The creator opens **Share** on the assessment. Every change there saves at once (the window shows "Saving…" then "Access saved"), so closing it never loses anything. From Share the creator can:
 
 - tap the search box to list everyone in the app, or type any part of a name or email to narrow it, then tap a person (or press Enter) to add them as **Can edit** or **Can view**
 - change or remove someone's access

@@ -326,6 +326,7 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 .pres-f .av.sm{width:20px;height:20px;font-size:8.5px;animation:pop .3s both}
 @keyframes pop{from{transform:scale(.4)}to{transform:none}}
 .save-state{font-size:12px;color:var(--muted);font-weight:600}
+.save-state.bad{color:var(--high)}
 .private-note{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin:0 0 12px}
 .private-note svg{flex:none}
 .notice.warn{background:color-mix(in oklab,var(--high) 12%,var(--surface))}
@@ -830,7 +831,26 @@ function shareSheet(a){
       view: "Anyone signed in to the app can open it. Only you and the people set to Can edit above can edit.",
       edit: "Anyone signed in to the app can open and edit it."}[general];
     $("#sh-ico").innerHTML = general==="restricted" ? ICON.lock : ICON.globe;
-    document.querySelectorAll("[data-prole]").forEach(sel=>sel.addEventListener("change", ()=>{ const ix = Number(sel.dataset.prole); if (sel.value==="remove") people.splice(ix,1); else people[ix].role = sel.value; draw(); }));
+    document.querySelectorAll("[data-prole]").forEach(sel=>sel.addEventListener("change", ()=>{ const ix = Number(sel.dataset.prole), who = nameOf(people[ix].id);
+      if (sel.value==="remove"){ people.splice(ix,1); persist(`${who} no longer has access`); } else { people[ix].role = sel.value; persist(`${who} can now ${sel.value==="edit"?"edit":"view"}`); }
+      draw(); }));
+  };
+  // Every change is saved straight away, like the rest of the app.
+  let saveChain = Promise.resolve(), pendingSaves = 0, lastError = "";
+  const status = () => { const el = $("#sh-state"); if (!el) return; el.textContent = pendingSaves ? "Saving…" : lastError ? "Not saved" : "Access saved"; el.classList.toggle("bad", !pendingSaves && !!lastError); };
+  const persist = (msg) => {
+    const access = general==="restricted" ? "private" : general;
+    const editors = people.filter(p=>p.role==="edit").map(p=>p.id), viewers = people.filter(p=>p.role==="view").map(p=>p.id);
+    pendingSaves++; lastError = ""; status();
+    saveChain = saveChain.then(async ()=>{
+      const {error} = await S.sb.rpc("set_assessment_sharing", {p_id:a.id, p_access:access, p_editors:editors, p_viewers:viewers});
+      pendingSaves--;
+      if (error){ lastError = error.message; err("Couldn't save access: " + error.message + ". Check your connection and try again."); status(); return; }
+      const r = itemRef(a.id); if (r) r.it._share = {access, editors, viewers};
+      err(""); status(); if (msg && !pendingSaves) toast(msg);
+      if (!pendingSaves) render();
+    });
+    return saveChain;
   };
   const drawHits = () => {
     const box = $("#sh-sug"), taken = new Set([a.owner, ...people.map(p=>p.id)]);
@@ -857,8 +877,9 @@ function shareSheet(a){
   const addPerson = id => {
     if (id===a.owner){ err("That's the creator, who already has full access."); return; }
     if (people.some(p=>p.id===id)){ err(nameOf(id) + " already has access."); return; }
-    people.push({id, role:$("#sh-role").value}); err(""); draw(); drawHits();
-    toast(`Added ${nameOf(id)} · ${$("#sh-role").value==="edit" ? "Can edit" : "Can view"}`);
+    const role = $("#sh-role").value;
+    people.push({id, role}); err(""); draw(); drawHits();
+    persist(`${nameOf(id)} can now ${role==="edit" ? "edit" : "view"}`);
   };
   openSheet(`
     <div class="sheet-h"><h3>Share “${esc(a.title)}”</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
@@ -880,9 +901,12 @@ function shareSheet(a){
         <p class="lede" style="font-size:13px" id="sh-general-hint"></p>
       </div>
     </div>
-    <div class="sheet-f"><div class="spacer"></div><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="sh-save">Save access</button></div>`,
+    <div class="sheet-f"><span class="save-state" id="sh-state">Changes save automatically</span><div class="spacer"></div><button class="btn primary" id="sh-done">Done</button></div>`,
   sh2=>{
-    sh2.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", closeSheet));
+    const done = async () => { const b = $("#sh-done"); if (pendingSaves && b){ b.disabled = true; b.textContent = "Saving…"; } await saveChain; if (lastError){ if (b){ b.disabled = false; b.textContent = "Done"; } return; } closeSheet(); };
+    sh2.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", done));
+    $("#sh-done").addEventListener("click", done);
+    S.closeActive = done;
     const q = $("#sh-q"), box = $("#sh-sug");
     q.addEventListener("focus", ()=>{ q.setAttribute("aria-expanded","true"); search(); });
     q.addEventListener("input", ()=>{ clearTimeout(qTimer); qTimer = setTimeout(search, 180); });
@@ -894,17 +918,7 @@ function shareSheet(a){
       else if (e.key==="Enter"){ e.preventDefault(); if (items[active]) addPerson(items[active].dataset.pick); }
       else if (e.key==="Escape"){ e.stopPropagation(); box.hidden = true; }
     });
-    $("#sh-general").addEventListener("change", e=>{ general = e.target.value; draw(); });
-    $("#sh-save").addEventListener("click", async ()=>{
-      const b = $("#sh-save"); b.disabled = true;
-      const access = general==="restricted" ? "private" : general;
-      const editors = people.filter(p=>p.role==="edit").map(p=>p.id), viewers = people.filter(p=>p.role==="view").map(p=>p.id);
-      const {error} = await S.sb.rpc("set_assessment_sharing", {p_id:a.id, p_access:access, p_editors:editors, p_viewers:viewers});
-      b.disabled = false;
-      if (error){ err("Couldn't save: " + error.message); return; }
-      const r = itemRef(a.id); if (r) r.it._share = {access, editors, viewers};
-      closeSheet(); render(); toast("Access updated");
-    });
+    $("#sh-general").addEventListener("change", e=>{ general = e.target.value; draw(); persist({restricted:"Only people with access can open it now", view:"Everyone in the app can view it now", edit:"Everyone in the app can edit it now"}[general]); });
     draw();
   });
 }
