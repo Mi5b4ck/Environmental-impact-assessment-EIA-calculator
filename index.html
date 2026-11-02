@@ -328,6 +328,10 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 .save-state{font-size:12px;color:var(--muted);font-weight:600}
 .private-note{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin:0 0 12px}
 .private-note svg{flex:none}
+.notice.warn{background:color-mix(in oklab,var(--high) 12%,var(--surface))}
+.notice.warn svg{color:var(--high)}
+.steps{margin:0;padding-left:20px;display:grid;gap:8px;font-size:14px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
 /* access and sharing */
 .access-box{display:grid;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);max-width:640px}
 .acc-row{display:flex;align-items:center;gap:10px;min-width:0}
@@ -648,13 +652,13 @@ function heroHTML(){
   </section>`;
 }
 function navHTML(cur){
-  const notice = S.unconfigured
+  const notice = dbNoticeHTML() + (S.unconfigured
     ? `<div class="notice">${ICON.info}<div><b>Not connected to Supabase yet.</b> Open this file in a text editor and paste your project URL and publishable key near the top. Until then, assessments save in this browser only.</div></div>`
     : S.standalone
     ? `<div class="notice">${ICON.info}<div>Assessments you make here are saved in this browser on this device. Tap <b>Backup</b> to save them as a file you can send to colleagues, and <b>Import</b> to load a file someone sent you.</div></div>`
     : S.offline
     ? `<div class="notice">${ICON.info}<div>The shared database isn't reachable in this view, so assessments you make now stay on this screen only. Open the app from its claude.ai link while signed in to save and share them.</div></div>`
-    : (!S.canWrite && S.ready ? `<div class="notice">${ICON.lock.replace('width="12" height="12"','')}<div>You're viewing in read-only mode. You can explore every assessment; to create your own, ask the app owner for edit access.</div></div>` : "");
+    : (!S.canWrite && S.ready ? `<div class="notice">${ICON.lock.replace('width="12" height="12"','')}<div>You're viewing in read-only mode. You can explore every assessment; to create your own, ask the app owner for edit access.</div></div>` : ""));
   return `${notice}<div class="nav">
     <div class="seg" role="group" aria-label="Sections">
       <button data-tab="history" aria-pressed="${cur==="history"}">${ICON.hist}History</button>
@@ -779,6 +783,23 @@ function accessHTML(a){
     <p class="acc-you acc-${role}">${you}</p>
   </div>`;
 }
+function dbNoticeHTML(){ return S.sb && (S.shareReady===false || S.settingsOff || S.patchOff) ? `<div class="notice warn">${ICON.info}<div><b>Your database needs the latest update.</b> Sharing, live co-editing or private dashboards won't work until you run <b>supabase-setup.sql</b> again in Supabase. <button class="linkbtn" data-act="db-help">Show me how</button></div></div>` : ""; }
+function dbUpdateSheet(){
+  openSheet(`
+    <div class="sheet-h"><h3>Update your database</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
+    <div class="sheet-b">
+      <p class="lede" style="font-size:14px">Sharing, live co-editing and private dashboards need a few additions to your Supabase database. It takes about a minute and doesn't change your existing assessments.</p>
+      <ol class="steps">
+        <li>Open <b>supabase-setup.sql</b> in your GitHub repository and copy all of it.</li>
+        <li>In Supabase, open <b>SQL Editor → New query</b>.</li>
+        <li>Paste it and tap <b>Run</b>. It should finish with "Success. No rows returned".</li>
+        <li>Come back here and reload this page.</li>
+      </ol>
+      <p class="lede" style="font-size:13px">It's safe to run more than once. If Supabase shows an error, copy the message and send it to whoever maintains this app.</p>
+    </div>
+    <div class="sheet-f"><div class="spacer"></div><button class="btn" data-close>Close</button><button class="btn primary" id="db-reload">Reload now</button></div>`,
+  sh=>{ sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", closeSheet)); $("#db-reload").addEventListener("click", ()=>location.reload()); });
+}
 function shareSheet(a){
   const sh = shareOf(a);
   const people = [...sh.editors.map(id=>({id, role:"edit"})), ...sh.viewers.filter(id=>!sh.editors.includes(id)).map(id=>({id, role:"view"}))].filter(p=>p.id!==a.owner);
@@ -877,10 +898,11 @@ function detailHTML(full){
   const actions = (mine
     ? `<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button><button class="btn" data-act="edit-a">${ICON.edit} Edit details</button>`
     : `<span class="tag">${ICON.lock} View only</span>${S.canWrite?`<button class="btn" data-act="copy">${ICON.copy} Copy to mine</button>`:""}`)
-    + (creator && S.sb && S.shareReady ? `<button class="btn" data-act="share">${ICON.people} Share</button>` : "")
+    + (S.sb ? (creator ? `<button class="btn" data-act="share">${ICON.people} Share</button>` : `<button class="btn" disabled title="Only the creator, ${esc(nameOf(full.owner))}, can share this assessment">${ICON.people} Share</button>`) : "")
     + (creator ? `<button class="btn danger" data-act="del-a">Delete</button>` : "");
   return `
   <button class="back" data-act="home">${ICON.back} History</button>
+  ${dbNoticeHTML()}
   <section class="d-head" id="d-head">
     <div class="meta"><span class="pres pres-here" data-pres-a="${esc(a.id)}" data-pres-names="1"></span><span class="who">${p.avatar?`<img src="${esc(p.avatar)}" alt="">`:""}<span>${esc(p.name)}</span></span>${statusHTML(st)}${a.location?`<span>${esc(a.location)}</span>`:""}<span>Updated ${ago(a.updatedAt)}</span></div>
     <h2>${esc(a.title)}</h2>
@@ -1895,19 +1917,21 @@ document.addEventListener("click", e=>{
   if (t.dataset.phase!=null){ S.phase = t.dataset.phase; render(); return; }
   if (t.dataset.who){ S.who = t.dataset.who; render(); return; }
   if (t.dataset.open!=null){ S.phase=""; const [owner,id] = t.dataset.open.split("|"); S.view={name:"detail", owner, id}; window.scrollTo({top:0}); render(); return; }
+  if (t.dataset.act==="db-help"){ dbUpdateSheet(); return; }
   const a = S.view.name==="detail" ? findA(S.view.owner, S.view.id) : null;
   if (t.dataset.imp && a){ const imp = a.impacts.find(i=>i.id===t.dataset.imp); if (imp) impactSheet(a, imp, !canEditA(a)); return; }
   if (t.dataset.status && a && canEditA(a)){ const st = t.dataset.status; if ((a.status||"draft")===st) return; live(a, [{op:"field", key:"status", value:st}]).then(ok=>ok && toast("Marked " + STATUS[st])); return; }
   const act = t.dataset.act;
   if (act==="home"){ S.view={name:"history"}; render(); }
   else if (act==="new") assessmentSheet(null);
+
   else if (act==="backup"){ const items = myItems(); if (!items.length){ toast("Nothing to back up yet"); return; } saveFile("eia-assessments-" + new Date().toISOString().slice(0,10) + ".json", JSON.stringify({app:"eia-impact-assessor", version:1, exportedAt:Date.now(), items}, null, 1), "Backup saved"); }
   else if (act==="edit-a" && a) assessmentSheet(a);
   else if (act==="add-imp" && a) impactSheet(a, null);
   else if (act==="csv" && a) exportCSV(a);
   else if (act==="pdf" && a) exportPDF(a, t);
   else if (act==="comment" && S.comments){ const el = $("#d-head"); S.comments.openComposer({element: el}).then(r=>{ if (r && r.opened===false) toast("Tap inside the app first, then try Comment again"); }).catch(()=>toast("Comments aren't available in this view")); }
-  else if (act==="share" && a && isMine(a)) shareSheet(a);
+  else if (act==="share" && a && isMine(a)){ if (S.shareReady) shareSheet(a); else dbUpdateSheet(); }
   else if (act==="analyse-this" && a){ Object.assign(S.dash, {projects:[keyOf(a)], phase:"", category:"", status:""}); S.view={name:"dashboard"}; window.scrollTo({top:0}); render(); }
   else if (act==="compare-this" && a){ S.cmp.a = keyOf(a); S.cmp.b = ""; S.view={name:"compare"}; window.scrollTo({top:0}); render(); }
   else if (act==="copy" && a){
