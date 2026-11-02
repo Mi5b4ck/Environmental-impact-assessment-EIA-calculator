@@ -14,7 +14,7 @@ High impacts call for control or mitigation measures.
 
 ## Features
 
-- Sign in with a 6-digit email code (no passwords)
+- Sign in with email and password; no email service needed
 - Shared records: everyone signed in can view all assessments; only the author can edit or delete theirs
 - Project phase for each impact: commissioning, operation, decommissioning
 - Residual risk after mitigation, with before-and-after comparison
@@ -52,10 +52,9 @@ The full option list for each criterion is in the app under **Scoring guide**.
 
 1. **Create a Supabase project** at [supabase.com](https://supabase.com).
 2. **Build the database.** In the SQL Editor, paste the contents of `supabase-setup.sql` and run it.
-3. **Send codes instead of links.** Under Authentication → Email Templates → Magic Link, put `{{ .Token }}` in the email body, for example `Your sign-in code is {{ .Token }}`.
-4. **Connect an email service.** Supabase's built-in email only reaches your own team and sends 2 emails an hour. Add SMTP details from a provider such as Brevo or Resend under Authentication → SMTP.
-5. **Add your project keys.** In `index.html`, near the top, set `SUPABASE_URL` to your Project URL and `SUPABASE_KEY` to your **publishable** key (starts with `sb_publishable_`). Never use the secret key here.
-6. **Publish with GitHub Pages.** In this repository go to Settings → Pages, choose **Deploy from a branch**, select `main` and `/ (root)`, and save. The app will be live at `https://<your-username>.github.io/<repository-name>/`.
+3. **Turn off email confirmation.** Under Authentication → Sign In / Providers → Email, switch **Confirm email** off and save. The app then never needs to send emails, so no email service is required.
+4. **Add your project keys.** In `index.html`, near the top, set `SUPABASE_URL` to your Project URL and `SUPABASE_KEY` to your **publishable** key (starts with `sb_publishable_`). Never use the secret key here.
+5. **Publish with GitHub Pages.** In this repository go to Settings → Pages, choose **Deploy from a branch**, select `main` and `/ (root)`, and save. The app will be live at `https://<your-username>.github.io/<repository-name>/`.
 
 The publishable key is safe in a public page: the row-level security rules in `supabase-setup.sql` decide who can read and change data.
 
@@ -65,3 +64,17 @@ The publishable key is safe in a public page: the row-level security rules in `s
 - Users can only create, edit and delete their own assessments.
 - Evidence files upload into a folder named after the uploader, and only the uploader can delete them. The evidence bucket is public, so anyone with a file's link can open it.
 - To make the app invite-only, turn off new sign-ups under Authentication and invite users from Authentication → Users.
+
+## Managing users
+
+- People create their own account in the app. Anyone with the link can register, so share it only with your team, or switch off **Allow new users to sign up** under Authentication once everyone has joined.
+- Signed-in users can change their display name and password under **Account**.
+- Because no emails are sent, there is no "forgot password" email. To reset someone's password, run this in the Supabase SQL Editor, replacing the email and the new password:
+
+```sql
+update auth.users
+set encrypted_password = crypt('NewPassword123', gen_salt('bf'))
+where email = 'person@example.com';
+```
+
+Then tell them the new password and ask them to change it under **Account**.

@@ -367,7 +367,7 @@ details.guide[open] summary::after{transform:rotate(45deg)}
     <div class="spacer"></div>
     <button class="icon-btn" id="theme-btn" aria-label="Switch theme" title="Switch theme"></button>
     <img class="me" id="me-avatar" alt="" hidden>
-    <button class="btn ghost" id="signout" hidden>Sign out</button>
+    <button class="btn ghost" id="signout" hidden>Account</button>
   </div>
 </header>
 
@@ -1170,48 +1170,74 @@ function sbSave(items){
   return writeChain;
 }
 function authHTML(){
-  const step = S.authStep || "email";
+  const mode = S.authMode || "in";
   return `<div class="panel" style="max-width:460px;margin-inline:auto">
-    <div class="panel-h"><h3>${step==="email"?"Sign in to continue":"Check your email"}</h3></div>
+    <div class="seg" role="group" aria-label="Account" style="margin-bottom:14px">
+      <button type="button" data-auth="in" aria-pressed="${mode==="in"}">Sign in</button>
+      <button type="button" data-auth="up" aria-pressed="${mode==="up"}">Create account</button>
+    </div>
     <form id="auth-form" style="display:grid;gap:14px" novalidate>
-      ${step==="email" ? `
-        <p class="lede" style="font-size:14px">We'll email you a 6-digit code. No password needed.</p>
-        <div class="field"><label for="au-email">Email</label><input id="au-email" type="email" autocomplete="email" required value="${esc(S.authEmail||"")}" placeholder="you@example.com"></div>
-        <div class="field"><label for="au-name">Your name, as others will see it</label><input id="au-name" autocomplete="name" maxlength="60" value="${esc(S.pendingName||"")}" placeholder="e.g. Mohamed A."></div>
-        <button class="btn primary" type="submit" id="au-go">Send code</button>` : `
-        <p class="lede" style="font-size:14px">We sent a code to <b>${esc(S.authEmail)}</b>. It expires in one hour.</p>
-        <div class="field"><label for="au-code">6-digit code</label><input id="au-code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" class="num" style="font-size:22px;letter-spacing:.3em"></div>
-        <button class="btn primary" type="submit" id="au-go">Sign in</button>
-        <button class="linkbtn" type="button" id="au-back">Use a different email</button>`}
+      <div class="field"><label for="au-email">Email</label><input id="au-email" type="email" autocomplete="email" required value="${esc(S.authEmail||"")}" placeholder="you@example.com"></div>
+      ${mode==="up" ? `<div class="field"><label for="au-name">Your name, as others will see it</label><input id="au-name" autocomplete="name" maxlength="60" value="${esc(S.pendingName||"")}" placeholder="e.g. Mohamed A."></div>` : ""}
+      <div class="field"><label for="au-pass">Password</label><input id="au-pass" type="password" autocomplete="${mode==="up"?"new-password":"current-password"}" minlength="8" required placeholder="${mode==="up"?"At least 8 characters":""}"></div>
+      <button class="btn primary" type="submit" id="au-go">${mode==="up"?"Create account":"Sign in"}</button>
+      ${mode==="in" ? `<p class="lede" style="font-size:13px">Forgot your password? Ask the person who runs this app to reset it.</p>` : ""}
       <p id="au-err" class="lede" style="color:var(--high);font-size:13px" hidden></p>
     </form></div>`;
 }
 function bindAuth(){
   const f = $("#auth-form"); if (!f) return;
   const err = m => { const e = $("#au-err"); e.textContent = m; e.hidden = !m; };
-  const back = $("#au-back"); if (back) back.addEventListener("click", ()=>{ S.authStep = "email"; render(); });
+  document.querySelectorAll("[data-auth]").forEach(b=>b.addEventListener("click", ()=>{ S.authEmail = $("#au-email").value.trim(); S.authMode = b.dataset.auth; render(); }));
   f.addEventListener("submit", async e=>{
-    e.preventDefault(); const go = $("#au-go"); go.disabled = true;
+    e.preventDefault(); const go = $("#au-go"); go.disabled = true; err("");
     try {
-      if ((S.authStep||"email")==="email"){
-        const email = $("#au-email").value.trim(); S.pendingName = $("#au-name").value.trim();
-        if (!/^\S+@\S+\.\S+$/.test(email)){ err("Enter a valid email address."); return; }
-        S.authEmail = email;
-        const {error} = await S.sb.auth.signInWithOtp({email, options:{shouldCreateUser:true}});
-        if (error){ err(/rate|limit/i.test(error.message) ? "Too many codes requested. Wait a few minutes and try again." : error.message); return; }
-        S.authStep = "code"; render();
+      const email = $("#au-email").value.trim(), password = $("#au-pass").value;
+      S.authEmail = email;
+      if (!/^\S+@\S+\.\S+$/.test(email)){ err("Enter a valid email address."); return; }
+      if ((S.authMode||"in")==="up"){
+        S.pendingName = $("#au-name").value.trim();
+        if (!S.pendingName){ err("Enter your name so others know who made each assessment."); $("#au-name").focus(); return; }
+        if (password.length < 8){ err("Use a password of at least 8 characters."); return; }
+        const {data, error} = await S.sb.auth.signUp({email, password});
+        if (error){ err(/registered|exists/i.test(error.message) ? "An account with this email already exists. Switch to Sign in." : /not allowed|disabled/i.test(error.message) ? "New accounts are closed. Ask the person who runs this app to add you." : error.message); return; }
+        if (!data.session){ err("Account created, but Supabase is still set to confirm emails. In Supabase, turn off Confirm email (Authentication → Sign In / Providers → Email), then sign in."); return; }
+        await afterSignIn(data.session.user);
       } else {
-        const token = $("#au-code").value.replace(/\s/g,"");
-        const {data, error} = await S.sb.auth.verifyOtp({email:S.authEmail, token, type:"email"});
-        if (error){ err("That code didn't work. Check it, or go back and request a new one."); return; }
-        await afterSignIn(data.user || (data.session && data.session.user));
+        const {data, error} = await S.sb.auth.signInWithPassword({email, password});
+        if (error){ err(/confirm/i.test(error.message) ? "This account hasn't been confirmed. Turn off Confirm email in Supabase, or ask the app owner to confirm it." : "Wrong email or password."); return; }
+        await afterSignIn(data.user);
       }
     } finally { if (go.isConnected) go.disabled = false; }
   });
 }
+function accountSheet(){
+  const me = S.sbProfiles[S.meId] || {};
+  openSheet(`
+    <div class="sheet-h"><h3>Your account</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
+    <form class="sheet-b" id="acc-form" novalidate>
+      <p class="lede" style="font-size:14px">Signed in as <b>${esc(S.myEmail||"")}</b></p>
+      <div class="field"><label for="acc-name">Display name</label><input id="acc-name" maxlength="60" value="${esc(me.name||"")}"></div>
+      <div class="field"><label for="acc-pass">New password</label><input id="acc-pass" type="password" autocomplete="new-password" placeholder="Leave blank to keep your current password"></div>
+      <p id="acc-err" class="lede" style="color:var(--high);font-size:13px" hidden></p>
+    </form>
+    <div class="sheet-f"><button class="btn danger" id="acc-out">Sign out</button><div class="spacer"></div><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="acc-save">Save</button></div>`,
+  sh=>{
+    sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", closeSheet));
+    $("#acc-out").addEventListener("click", async ()=>{ await S.sb.auth.signOut(); location.reload(); });
+    $("#acc-save").addEventListener("click", async ()=>{
+      const name = $("#acc-name").value.trim(), pass = $("#acc-pass").value, e = $("#acc-err");
+      if (!name){ e.textContent = "Enter a display name."; e.hidden = false; return; }
+      if (pass && pass.length < 8){ e.textContent = "Use a password of at least 8 characters."; e.hidden = false; return; }
+      if (pass){ const {error} = await S.sb.auth.updateUser({password:pass}); if (error){ e.textContent = error.message; e.hidden = false; return; } }
+      if (name !== me.name){ const {error} = await S.sb.from("profiles").upsert({id:S.meId, display_name:name, updated_at:new Date().toISOString()}); if (error){ e.textContent = error.message; e.hidden = false; return; } }
+      closeSheet(); toast(pass ? "Password changed" : "Saved"); loadAll();
+    });
+  });
+}
 async function afterSignIn(u){
   if (!u) return;
-  S.needAuth = false; S.meId = u.id; S.canWrite = true;
+  S.needAuth = false; S.meId = u.id; S.myEmail = u.email || ""; S.canWrite = true;
   const {data:prof} = await S.sb.from("profiles").select("display_name").eq("id", u.id).maybeSingle();
   if (!prof || !prof.display_name || (S.pendingName && S.pendingName!==prof.display_name)){
     await S.sb.from("profiles").upsert({id:u.id, display_name: S.pendingName || (prof && prof.display_name) || (u.email||"").split("@")[0], updated_at:new Date().toISOString()});
@@ -1230,7 +1256,7 @@ async function afterSignIn(u){
   await loadAll();
   if (!S.live){ S.live = S.sb.channel("eia-live").on("postgres_changes", {event:"*", schema:"public", table:"assessments"}, ()=>{ clearTimeout(S.rt); S.rt = setTimeout(loadAll, 400); }).subscribe(); }
 }
-$("#signout").addEventListener("click", async ()=>{ await S.sb.auth.signOut(); location.reload(); });
+$("#signout").addEventListener("click", accountSheet);
 
 /* ---------- Boot ---------- */
 async function boot(){
