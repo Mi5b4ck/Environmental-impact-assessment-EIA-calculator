@@ -63,7 +63,7 @@ The publishable key is safe in a public page: the row-level security rules in `s
 - Signed-in users can read every assessment and everyone's display name.
 - Users can only create, edit and delete their own assessments.
 - Evidence files upload into a folder named after the uploader, and only the uploader can delete them. The evidence bucket is public, so anyone with a file's link can open it.
-- To make the app invite-only, turn off new sign-ups under Authentication and invite users from Authentication → Users.
+- To close registration once your team has joined, see **Managing users** below.
 
 ## Managing users
 
