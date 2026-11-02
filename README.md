@@ -18,7 +18,7 @@ High impacts call for control or mitigation measures.
 - Live co-editing, like Canva: several people can edit the same assessment, even the same impact, at once; every change saves instantly and appears for everyone within a second
 - Presence: see who's online, who's viewing an assessment, and who's editing which impact or field
 - Canva-style sharing: the creator decides who can view and who can edit
-- Project phase for each impact: commissioning, operation, decommissioning
+- Several categories per impact (for example Air, Water and Soil & land), and several project phases: commissioning, operation, decommissioning
 - Residual risk after mitigation, with before-and-after comparison
 - Risk heatmap (magnitude × severity), significance chart and evaluation matrix
 - Private analysis dashboard, saved to each user's account: filter by project, phase, category and status; headline figures and automatic key findings; charts you configure yourself (measure, grouping, split, chart type, scale), including Pareto, radar criteria fingerprint, heatmap and scatter; download each chart as PNG or CSV, or all charts as one PDF

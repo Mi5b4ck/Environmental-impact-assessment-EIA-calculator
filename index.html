@@ -508,6 +508,7 @@ const CATS = ["Air","Water","Waste","Soil & land","Noise","Biodiversity","Health
 const STATUS = {draft:"Draft", review:"Under review", approved:"Approved"};
 const PHASES = ["Commissioning","Operation","Decommissioning"];
 const phasesOf = i => PHASES.filter(p=>(i.phases||[]).includes(p));
+const catsOf = i => { const c = i && i.category; const list = Array.isArray(c) ? c : (c ? [c] : []); return CATS.filter(x=>list.includes(x)).concat(list.filter(x=>!CATS.includes(x))); };
 const phaseShort = i => phasesOf(i).map(p=>p.slice(0,1)).join("·");
 const phaseTags = i => phasesOf(i).map(p=>`<span class="tag phase">${p}</span>`).join("");
 function scoreOf(k, idx){ const c = CRITERIA.find(x=>x.k===k); const o = c && c.opts[idx]; return o ? o[1] : 1; }
@@ -918,7 +919,7 @@ function detailHTML(full){
   const phaseBar = full.impacts.length ? `<div class="phase-bar"><span class="lbl">Project phase</span><div class="seg" role="group" aria-label="Filter by phase">${["",...PHASES].map(x=>{ const n = x ? full.impacts.filter(i=>phasesOf(i).includes(x)).length : full.impacts.length; return `<button data-phase="${x}" aria-pressed="${ph===x}">${x||"All phases"} <span class="num" style="opacity:.6">${n}</span></button>`; }).join("")}</div></div>` : "";
   const maxOf = k => Math.max(...CRITERIA.find(c=>c.k===k).opts.map(o=>o[1]));
   const table = imps.length ? `<div class="tbl-wrap"><table><thead><tr><th>Impact</th>${CRITERIA.map(c=>`<th title="${esc(c.name)}">${c.k}</th>`).join("")}<th>H</th><th title="After mitigation">H′</th></tr></thead><tbody>
-    ${imps.map(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):null; return `<tr class="row" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span><small>${esc([i.category, phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${CRITERIA.map(c=>{ const v=scoreOf(c.k,i.sel[c.k]); const pr=(v-1)/Math.max(1,maxOf(c.k)-1); return `<td class="heat" style="--p:${pr.toFixed(2)}">${v}</td>`;}).join("")}<td class="h ${band(h)}">${h.toLocaleString()}</td><td class="${r==null?"":"h "+band(r)}">${r==null?"—":r.toLocaleString()}</td></tr>`;}).join("")}
+    ${imps.map(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):null; return `<tr class="row" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span><small>${esc([catsOf(i).join(", "), phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${CRITERIA.map(c=>{ const v=scoreOf(c.k,i.sel[c.k]); const pr=(v-1)/Math.max(1,maxOf(c.k)-1); return `<td class="heat" style="--p:${pr.toFixed(2)}">${v}</td>`;}).join("")}<td class="h ${band(h)}">${h.toLocaleString()}</td><td class="${r==null?"":"h "+band(r)}">${r==null?"—":r.toLocaleString()}</td></tr>`;}).join("")}
   </tbody></table></div>` : `${ph && full.impacts.length ? `<div class="empty"><h3>No impacts in ${esc(ph)}</h3><div>None of this assessment's impacts are marked for the ${esc(ph.toLowerCase())} phase.</div></div>` : ""}${ph && full.impacts.length ? "" : `<div class="empty"><h3>No impacts yet</h3><div>${mine?"Add the first impact this project could cause, such as an emission, a discharge or a social effect.":"The author hasn't added impacts yet."}</div>${mine?`<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button>`:""}</div>`}`;
   const st = a.status||"draft";
   const creator = isMine(full);
@@ -981,7 +982,7 @@ const BAND_ORDER = ["high","med","low"];
 const GROUPS = {
   project:  {label:"Project", keys:r=>[r.pkey], name:k=>DX.pname[k]||k},
   impact:   {label:"Impact (matched by name)", keys:r=>[r.ikey], name:k=>DX.iname[k]||k},
-  category: {label:"Category", keys:r=>[r.category]},
+  category: {label:"Category", keys:r=>r.categories},
   phase:    {label:"Project phase", keys:r=>r.phases.length?r.phases:["Not set"], order:[...PHASES,"Not set"]},
   band:     {label:"Significance band", keys:r=>[r.band], order:BAND_ORDER, name:k=>BAND_NAME[k]},
   status:   {label:"Review status", keys:r=>[r.status], order:Object.keys(STATUS), name:k=>STATUS[k]},
@@ -1024,7 +1025,7 @@ function dashRows(){
       const s = Object.fromEntries(CRITERIA.map(c=>[c.k, scoreOf(c.k, i.sel[c.k])]));
       const h = H(i.sel), hr = HR(i), ik = norm(i.name);
       if (!DX.iname[ik]) DX.iname[ik] = i.name;
-      out.push({pkey:pk, project:a.title, ikey:ik, name:i.name, category:i.category||"Other", phases:phasesOf(i), status:a.status||"draft",
+      out.push({pkey:pk, project:a.title, ikey:ik, name:i.name, categories:catsOf(i).length ? catsOf(i) : ["Other"], category:(catsOf(i)[0]||"Other"), phases:phasesOf(i), status:a.status||"draft",
         author:person(a.owner).name, s, sr:i.rsel?Object.fromEntries(CRITERIA.map(c=>[c.k, scoreOf(c.k, i.rsel[c.k])])):s, H:h, Hr:hr, scored:!!i.rsel, band:band(h), rband:band(hr), hasMit:!!(i.mitigation||"").trim(), legal:s.E===2});
     });
   });
@@ -1032,7 +1033,7 @@ function dashRows(){
 }
 function filtered(rows){
   const d = S.dash;
-  return rows.filter(r => (!d.projects.length || d.projects.includes(r.pkey)) && (!d.phase || r.phases.includes(d.phase)) && (!d.category || r.category===d.category) && (!d.status || r.status===d.status));
+  return rows.filter(r => (!d.projects.length || d.projects.includes(r.pkey)) && (!d.phase || r.phases.includes(d.phase)) && (!d.category || r.categories.includes(d.category)) && (!d.status || r.status===d.status));
 }
 const fmtV = (v, m) => v==null ? "–" : (m && m.pct) ? Math.round(v)+"%" : Math.abs(v) >= 100 || Number.isInteger(v) ? Math.round(v).toLocaleString() : v.toFixed(2);
 
@@ -1117,7 +1118,7 @@ function dashboardHTML(){
   const all = allAssessments();
   if (!all.length) return emptyStore();
   const rowsAll = dashRows(), rows = filtered(rowsAll), d = S.dash;
-  const cats = [...new Set(rowsAll.map(r=>r.category))].sort();
+  const cats = [...new Set(rowsAll.flatMap(r=>r.categories))].sort();
   const N = rows.length, hi = rows.filter(r=>r.band==="high");
   const scored = rows.filter(r=>r.scored); const red = MEASURES.reduction.f(rows);
   const projN = new Set(rows.map(r=>r.pkey)).size;
@@ -1160,7 +1161,7 @@ function dashboardHTML(){
       <li><b>H′</b> is the residual score after control and mitigation. Impacts without a residual score are counted as unchanged.</li>
       <li><b>Criteria fingerprint</b> shows each criterion's mean score as a percentage of its maximum (C max 3, E max 2, F max 4, others max 5), so criteria can be compared fairly. The highest spokes are the main risk drivers.</li>
       <li><b>Pareto</b> ranks impacts by total H with the cumulative share as a line: the few impacts on the left that reach 80% are where mitigation pays off most.</li>
-      <li>Impacts spanning several phases count once in each phase.</li>
+      <li>Impacts that affect several categories or span several phases count once in each category and each phase, so those totals can add up to more than the number of impacts.</li>
       <li>Chart layouts are saved in this browser. Projects, filters and data are shared by everyone.</li>
     </ul></details>`;
 }
@@ -1182,7 +1183,7 @@ function findingsHTML(rows){
   if (nc.length) out.push(`<b>${nc.length}</b> impact${nc.length>1?"s are":" is"} flagged as not meeting legislation (E = 2)${nc.length<=4?": "+nc.map(x=>esc(x.name)).join(", "):""}.`);
   const ph = PHASES.map(p=>({p, n:rows.filter(r=>r.band==="high" && r.phases.includes(p)).length})).sort((a,b)=>b.n-a.n);
   if (ph[0].n) out.push(`Most high impacts occur during <b>${ph[0].p.toLowerCase()}</b> (${ph[0].n})${ph[1].n?`, followed by ${ph[1].p.toLowerCase()} (${ph[1].n})`:""}.`);
-  const cats = {}; rows.forEach(r=>{ (cats[r.category]=cats[r.category]||[]).push(r.H); });
+  const cats = {}; rows.forEach(r=>r.categories.forEach(c=>{ (cats[c]=cats[c]||[]).push(r.H); }));
   const cr = Object.entries(cats).map(([c,v])=>({c, m:med(v), n:v.length})).sort((a,b)=>b.m-a.m);
   if (cr.length>1) out.push(`By category, <b>${esc(cr[0].c)}</b> has the highest median H (${Math.round(cr[0].m).toLocaleString()}, ${cr[0].n} impact${cr[0].n>1?"s":""}).`);
   return out.map(x=>`<li>${x}</li>`).join("");
@@ -1256,7 +1257,7 @@ function drawScatter(card, cfg, rows){
   const jit = (v, on, i) => on ? v + (((i*7919)%13)/13 - .5)*.3 : v;
   const split = cfg.split||"band";
   const groups = new Map();
-  rows.forEach(r=>{ const k = split==="none" ? "all" : split==="project" ? r.pkey : split==="phase" ? (r.phases[0]||"Not set") : split==="category" ? r.category : r.band; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(r); });
+  rows.forEach(r=>{ const k = split==="none" ? "all" : split==="project" ? r.pkey : split==="phase" ? (r.phases[0]||"Not set") : split==="category" ? (r.categories.length>1 ? "Several" : r.categories[0]) : r.band; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(r); });
   let keys = [...groups.keys()]; if (split==="band") keys.sort((a,b)=>BAND_ORDER.indexOf(a)-BAND_ORDER.indexOf(b));
   const label = k => split==="none" ? "Impacts" : split==="project" ? DX.pname[k] : split==="band" ? BAND_NAME[k] : k;
   card._table = {head:["Impact","Project",SVARS[xv],SVARS[yv]], rows:rows.map(r=>[r.name, r.project, get(r,xv), get(r,yv)]), m:{}};
@@ -1671,7 +1672,7 @@ function aiPrompt(a, cur){
 Project: ${a.title}${a.project?" — "+a.project:""}${a.location?", "+a.location:""}
 Scope: ${a.description||"not given"}
 Impact: ${cur.name}
-Category: ${cur.category}
+Categories (environmental receptors affected): ${catsOf(cur).join(", ")||"not given"}
 Project phase(s) when it occurs: ${phasesOf(cur).join(", ")||"not given"}
 Notes from the assessor: ${cur.notes||"none"}
 Measures already planned: ${cur.mitigation||"none"}
@@ -1693,7 +1694,7 @@ function impactSheet(a0, imp0, readOnly){
   let impId = imp0 ? imp0.id : null, createdHere = false, touched = false, mode = "now";
   if (!imp0){
     if (readOnly) return;
-    const fresh = {id:uid("i"), name:"New impact", category:"Air", phases:[S.phase||"Operation"], notes:"", mitigation:"",
+    const fresh = {id:uid("i"), name:"New impact", category:["Air"], phases:[S.phase||"Operation"], notes:"", mitigation:"",
       sel:Object.fromEntries(CRITERIA.map(c=>[c.k, c.opts.length-1])), evidence:[]};
     impId = fresh.id; createdHere = true;
     live(a0, [{op:"imp_add", value:fresh}]);
@@ -1719,7 +1720,7 @@ function impactSheet(a0, imp0, readOnly){
     <div class="sheet-b" id="imp-body" ${createdHere ? "" : "data-noautofocus"}>
       <div class="pres-banner" id="pres-sheet" hidden></div>
       ${readOnly?"":`<div class="field"><label for="i-name">Impact <span class="pres-f" data-pres-field="name"></span></label><input id="i-name" maxlength="80" placeholder="e.g. NOx emissions, dust, wastewater discharge" value="${esc(i0.name)}"></div>`}
-      <div class="field"><span class="lbl">Category <span class="pres-f" data-pres-field="category"></span></span><div class="cats" id="cats">${CATS.map(c=>`<button type="button" ${ro} data-cat="${esc(c)}" aria-pressed="${i0.category===c}">${esc(c)}</button>`).join("")}</div></div>
+      <div class="field"><span class="lbl">Category · what does this impact affect? (pick all that apply) <span class="pres-f" data-pres-field="category"></span></span><div class="cats" id="cats">${CATS.map(c=>`<button type="button" ${ro} data-cat="${esc(c)}" aria-pressed="${catsOf(i0).includes(c)}">${esc(c)}</button>`).join("")}</div><p class="lede" id="cat-warn" style="font-size:13px;color:var(--high)" ${catsOf(i0).length?"hidden":""}>${readOnly?"No category recorded.":"Pick at least one category."}</p></div>
       <div class="field"><span class="lbl">Project phase · when is this impact faced? (pick all that apply) <span class="pres-f" data-pres-field="phases"></span></span><div class="cats phases" id="phases">${PHASES.map(p=>`<button type="button" ${ro} data-ph="${p}" aria-pressed="${phasesOf(i0).includes(p)}">${p}</button>`).join("")}</div><p class="lede" id="ph-warn" style="font-size:13px;color:var(--high)" ${phasesOf(i0).length?"hidden":""}>${readOnly?"No phase recorded.":"Pick at least one phase."}</p></div>
       ${!readOnly && S.sample ? `<div class="ai"><div class="ai-top"><b>AI scoring assistant<small>Suggests A–G scores, measures and the residual score from your description.</small></b><button type="button" class="btn primary" id="ai-go">${ICON.spark} Suggest</button></div><p id="ai-out" hidden></p></div>` : ""}
       <div class="mode"><div class="seg" role="group" aria-label="Score">
@@ -1769,7 +1770,7 @@ function impactSheet(a0, imp0, readOnly){
       $("#mode-hint").textContent = i.rsel ? "Residual score recorded" : "Not scored after mitigation yet";
       const cr = $("#clear-r"); if (cr) cr.hidden = !i.rsel;
       paintCrit();
-      sh.querySelectorAll("[data-cat]").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.cat===i.category)));
+      const cs = catsOf(i); sh.querySelectorAll("[data-cat]").forEach(o=>o.setAttribute("aria-pressed", String(cs.includes(o.dataset.cat)))); $("#cat-warn").hidden = !!cs.length;
       const ph = phasesOf(i); sh.querySelectorAll("[data-ph]").forEach(o=>o.setAttribute("aria-pressed", String(ph.includes(o.dataset.ph)))); $("#ph-warn").hidden = !!ph.length;
       Object.entries(textF).forEach(([k, sel])=>{ const el = $(sel); if (el && document.activeElement!==el && !timers[k] && el.value !== (i[k]||"")) el.value = i[k]||""; });
       $("#imp-title").textContent = i.name || "Impact";
@@ -1794,7 +1795,7 @@ function impactSheet(a0, imp0, readOnly){
     const cr = $("#clear-r"); if (cr) cr.addEventListener("click", ()=>{ set(["rsel"], null); mode = "now"; sh.querySelectorAll("[data-mode]").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.mode==="now"))); paint(false); });
     if (!readOnly){
       sh.querySelectorAll("[data-ph]").forEach(btn=>btn.addEventListener("click", ()=>{ const p = btn.dataset.ph, cur = phasesOf(I()); setEditing({a:aid, imp:impId, field:"phases"}); set(["phases"], cur.includes(p) ? cur.filter(x=>x!==p) : PHASES.filter(x=>x===p||cur.includes(x))); paint(false); }));
-      sh.querySelectorAll("[data-cat]").forEach(btn=>btn.addEventListener("click", ()=>{ setEditing({a:aid, imp:impId, field:"category"}); set(["category"], btn.dataset.cat); paint(false); }));
+      sh.querySelectorAll("[data-cat]").forEach(btn=>btn.addEventListener("click", ()=>{ setEditing({a:aid, imp:impId, field:"category"}); const c = btn.dataset.cat, cur = catsOf(I()); set(["category"], cur.includes(c) ? cur.filter(x=>x!==c) : CATS.filter(x=>x===c||cur.includes(x)).concat(cur.filter(x=>!CATS.includes(x)))); paint(false); }));
       Object.entries(textF).forEach(([key, sel])=>{ const el = $(sel); if (!el) return;
         el.addEventListener("input", ()=>{ clearTimeout(timers[key]); timers[key] = setTimeout(()=>flush(key), 600); const ss = $("#save-state"); if (ss) ss.textContent = "Saving…"; if (key==="name") $("#imp-title").textContent = el.value || "Impact"; });
         el.addEventListener("blur", ()=>{ if (timers[key]) flush(key); });
@@ -1872,8 +1873,8 @@ async function saveFile(name, data, okMsg){
 }
 const fileBase = a => (a.title||"assessment").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").slice(0,60) || "assessment";
 function exportCSV(a){
-  const rows = [["Impact","Category","Phase",...CRITERIA.map(c=>c.k+" "+c.name),"H","Band","H after mitigation","Band after","Notes","Mitigation","Evidence files"]];
-  a.impacts.forEach(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):""; rows.push([i.name,i.category||"",phasesOf(i).join("; "),...CRITERIA.map(c=>scoreOf(c.k,i.sel[c.k])),h,BAND_NAME[band(h)],r,r===""?"":BAND_NAME[band(r)],i.notes||"",i.mitigation||"",(i.evidence||[]).map(e=>e.name).join("; ")]); });
+  const rows = [["Impact","Categories","Phase",...CRITERIA.map(c=>c.k+" "+c.name),"H","Band","H after mitigation","Band after","Notes","Mitigation","Evidence files"]];
+  a.impacts.forEach(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):""; rows.push([i.name,catsOf(i).join("; "),phasesOf(i).join("; "),...CRITERIA.map(c=>scoreOf(c.k,i.sel[c.k])),h,BAND_NAME[band(h)],r,r===""?"":BAND_NAME[band(r)],i.notes||"",i.mitigation||"",(i.evidence||[]).map(e=>e.name).join("; ")]); });
   const csv = rows.map(r=>r.map(v=>{ const s=String(v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(",")).join("\n");
   saveFile(fileBase(a)+".csv", csv, "CSV saved");
 }
@@ -1910,8 +1911,8 @@ async function exportPDF(a, btn){
     doc.text("Phase: C = Commissioning, O = Operation, D = Decommissioning.  H = A x B x C x D x E x F x G.  Bands: Low H < 25 · Medium 25-200 · High H > 200.  Max possible H = "+MAXH.toLocaleString()+".", M, y); y += 14;
     const imps = a.impacts.slice().sort((x,z)=>H(z.sel)-H(x.sel));
     const bandCell = (data, col, getH) => { if (data.section==="body" && data.column.index===col){ const v = getH(data.row.index); if (v!=null){ const c = RGB[band(v)]; data.cell.styles.textColor = c; data.cell.styles.fontStyle = "bold"; } } };
-    doc.autoTable({ startY:y, margin:{left:M,right:M}, head:[["Impact","Category","Phase",...CRITERIA.map(c=>c.k),"H","Band","H'"]],
-      body: imps.map(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):null; return [latin(i.name), latin(i.category||""), phaseShort(i)||"-", ...CRITERIA.map(c=>scoreOf(c.k,i.sel[c.k])), h.toLocaleString(), BAND_NAME[band(h)], r==null?"-":r.toLocaleString()]; }),
+    doc.autoTable({ startY:y, margin:{left:M,right:M}, head:[["Impact","Categories","Phase",...CRITERIA.map(c=>c.k),"H","Band","H'"]],
+      body: imps.map(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):null; return [latin(i.name), latin(catsOf(i).join(", ")), phaseShort(i)||"-", ...CRITERIA.map(c=>scoreOf(c.k,i.sel[c.k])), h.toLocaleString(), BAND_NAME[band(h)], r==null?"-":r.toLocaleString()]; }),
       styles:{fontSize:8.5, cellPadding:4, halign:"center"}, columnStyles:{0:{halign:"left", cellWidth:110}, 1:{halign:"left"}},
       headStyles:{fillColor:[27,28,21], textColor:[207,221,82]}, alternateRowStyles:{fillColor:[242,243,235]},
       didParseCell: d => { bandCell(d, 10, ix=>H(imps[ix].sel)); bandCell(d, 11, ix=>H(imps[ix].sel)); bandCell(d, 12, ix=>imps[ix].rsel?H(imps[ix].rsel):null); } });
