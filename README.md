@@ -15,12 +15,14 @@ High impacts call for control or mitigation measures.
 ## Features
 
 - Sign in with email and password; no email service needed
-- Shared records: everyone signed in can view all assessments; only the author can edit or delete theirs
+- Live co-editing, like Canva: several people can edit the same assessment, even the same impact, at once; every change saves instantly and appears for everyone within a second
+- Presence: see who's online, who's viewing an assessment, and who's editing which impact or field
+- Canva-style sharing: the creator decides who can view and who can edit
 - Project phase for each impact: commissioning, operation, decommissioning
 - Residual risk after mitigation, with before-and-after comparison
 - Risk heatmap (magnitude × severity), significance chart and evaluation matrix
-- Analysis dashboard: filter by project, phase, category and status; headline figures and automatic key findings; charts you configure yourself (measure, grouping, split, chart type, scale), including Pareto, radar criteria fingerprint, heatmap and scatter; download each chart as PNG or CSV, or all charts as one PDF
-- Side-by-side compare view
+- Private analysis dashboard, saved to each user's account: filter by project, phase, category and status; headline figures and automatic key findings; charts you configure yourself (measure, grouping, split, chart type, scale), including Pareto, radar criteria fingerprint, heatmap and scatter; download each chart as PNG or CSV, or all charts as one PDF
+- Side-by-side compare view, also private and saved per user
 - Review status: Draft, Under review, Approved
 - Photo and file evidence for each impact
 - PDF report and CSV export
@@ -81,7 +83,20 @@ History has filters for **All**, **Created by me** and **Shared with me**.
 
 Evidence files are stored in a public folder, so anyone with a file's direct link can open it, even if the assessment is private.
 
-**Updating an existing project:** run `supabase-setup.sql` again in the SQL Editor. It is safe to re-run and adds the sharing columns, rules and functions. Existing assessments start as *Everyone in the app · Can view*, editable only by their creator.
+**Updating an existing project:** run `supabase-setup.sql` again in the SQL Editor. It is safe to re-run and adds the sharing, live co-editing and private workspace pieces. Existing assessments start as *Everyone in the app · Can view*, editable only by their creator.
+
+## Live co-editing
+
+There is no Save button. Each change (one score, a name, a category, an attachment) is sent as a small operation to the `apply_assessment_patch` database function, which applies it to the latest version of the assessment while the row is locked. So:
+
+- two people changing different impacts, or different fields of the same impact, never overwrite each other
+- if two people change the very same field at the same moment, the later change wins, and both see the result within a second
+- changes appear on everyone's screen as they're made, and each editor shows "Saving…" / "All changes saved"
+- avatars show who's online, who's viewing an assessment, and which impact and field each person is editing
+
+## Private workspace
+
+Each person's dashboard (filters, charts, chart settings) and compare selection are saved to their own row in `user_settings`, which only they can read or change. They come back on any device after signing in. Charts are always drawn from the latest data the person is allowed to see.
 
 ## Managing users
 

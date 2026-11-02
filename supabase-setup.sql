@@ -104,6 +104,86 @@ $$;
 revoke all on function public.find_user_by_email(text) from public, anon;
 grant execute on function public.find_user_by_email(text) to authenticated;
 
+-- Live co-editing ---------------------------------------------------------
+-- Every change is sent as a small operation (set one score, rename one
+-- impact, add or remove an impact...) and applied inside the database while
+-- the row is locked. Two people editing the same assessment, or the same
+-- impact, at the same time never overwrite each other's other changes.
+-- Runs with the caller's rights, so the sharing rules above still apply.
+create or replace function public.apply_assessment_patch(p_id text, p_ops jsonb)
+returns jsonb language plpgsql security invoker set search_path = public as $$
+declare
+  d jsonb; op jsonb; idx int; p text[];
+begin
+  select doc into d from public.assessments where id = p_id for update;
+  if not found then
+    raise exception 'You do not have edit access to this assessment';
+  end if;
+  d := jsonb_set(d, '{impacts}', coalesce(d->'impacts', '[]'::jsonb), true);
+  for op in select * from jsonb_array_elements(coalesce(p_ops, '[]'::jsonb)) loop
+    idx := null;
+    if op->>'op' in ('imp_set', 'ev_add', 'ev_del') then
+      select (e.ord - 1)::int into idx
+        from jsonb_array_elements(d->'impacts') with ordinality e(v, ord)
+       where e.v->>'id' = op->>'imp';
+      continue when idx is null;  -- the impact was removed meanwhile
+    end if;
+    case op->>'op'
+      when 'field' then
+        if op->>'key' not in ('title', 'project', 'location', 'description', 'status') then
+          raise exception 'This field cannot be changed';
+        end if;
+        d := jsonb_set(d, array[op->>'key'], coalesce(op->'value', 'null'::jsonb), true);
+      when 'imp_add' then
+        continue when op->'value'->>'id' is null
+          or exists (select 1 from jsonb_array_elements(d->'impacts') v where v->>'id' = op->'value'->>'id');
+        d := jsonb_set(d, '{impacts}', (d->'impacts') || jsonb_build_array(op->'value'), true);
+      when 'imp_del' then
+        d := jsonb_set(d, '{impacts}', coalesce((select jsonb_agg(e.v order by e.ord)
+               from jsonb_array_elements(d->'impacts') with ordinality e(v, ord)
+              where e.v->>'id' <> op->>'imp'), '[]'::jsonb), true);
+      when 'imp_set' then
+        p := array(select jsonb_array_elements_text(op->'path'));
+        if p[1] not in ('name', 'category', 'phases', 'sel', 'rsel', 'notes', 'mitigation') then
+          raise exception 'This impact field cannot be changed';
+        end if;
+        d := jsonb_set(d, array['impacts', idx::text] || p, coalesce(op->'value', 'null'::jsonb), true);
+      when 'ev_add' then
+        d := jsonb_set(d, array['impacts', idx::text, 'evidence'],
+               coalesce(d #> array['impacts', idx::text, 'evidence'], '[]'::jsonb) || jsonb_build_array(op->'value'), true);
+      when 'ev_del' then
+        d := jsonb_set(d, array['impacts', idx::text, 'evidence'],
+               coalesce((select jsonb_agg(v) from jsonb_array_elements(coalesce(d #> array['impacts', idx::text, 'evidence'], '[]'::jsonb)) v
+                          where v->>'id' <> op->>'id'), '[]'::jsonb), true);
+      else
+        raise exception 'Unknown change';
+    end case;
+  end loop;
+  d := jsonb_set(d, '{updatedAt}', to_jsonb((extract(epoch from now()) * 1000)::bigint), true);
+  d := jsonb_set(d, '{updatedBy}', to_jsonb(auth.uid()), true);
+  update public.assessments set doc = d, updated_at = now() where id = p_id;
+  return d;
+end $$;
+revoke all on function public.apply_assessment_patch(text, jsonb) from public, anon;
+grant execute on function public.apply_assessment_patch(text, jsonb) to authenticated;
+
+-- Private workspace: each person's dashboard and compare settings ---------
+-- Only the owner of a row can read or change it.
+create table if not exists public.user_settings (
+  user_id    uuid primary key default auth.uid() references auth.users(id) on delete cascade,
+  dashboard  jsonb not null default '{}'::jsonb,
+  compare    jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.user_settings enable row level security;
+drop policy if exists "Read your own settings" on public.user_settings;
+create policy "Read your own settings" on public.user_settings for select to authenticated using (user_id = (select auth.uid()));
+drop policy if exists "Create your own settings" on public.user_settings;
+create policy "Create your own settings" on public.user_settings for insert to authenticated with check (user_id = (select auth.uid()));
+drop policy if exists "Update your own settings" on public.user_settings;
+create policy "Update your own settings" on public.user_settings for update to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+
 -- Live updates: everyone sees changes as they happen
 do $$ begin
   alter publication supabase_realtime add table public.assessments;

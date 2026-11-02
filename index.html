@@ -308,6 +308,26 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 .after-pill{font-family:var(--f-mono);font-size:13px;display:inline-flex;gap:6px;align-items:center}
 .needle.ghost{border-style:dashed;background:transparent;width:14px;height:14px}
 
+/* live co-editing and presence */
+.online{display:flex;align-items:center;padding-right:4px}
+.online .av{margin-left:-8px;border:2px solid var(--bg)}
+.online .av:first-child{margin-left:0}
+.av.sm{width:24px;height:24px;font-size:9.5px;border:2px solid var(--surface);margin-left:-6px;color:#fff}
+.av.sm:first-child{margin-left:0}
+.av.more{background:var(--surface-2);color:var(--fg)}
+.pres{display:inline-flex;align-items:center;gap:6px;margin-left:8px;vertical-align:middle}
+.pres:empty{display:none}
+.pres-txt{font-size:12px;font-weight:600;color:var(--med);font-family:var(--f-body);letter-spacing:0;text-transform:none}
+.pres-here{margin-left:0}
+.pres-banner{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:color-mix(in oklab,var(--med) 13%,var(--surface));font-size:13px;animation:fade .3s both}
+.pres-banner .av.sm{border-color:var(--surface)}
+.pres-f{display:inline-flex;vertical-align:middle;margin-left:6px}
+.pres-f:empty{display:none}
+.pres-f .av.sm{width:20px;height:20px;font-size:8.5px;animation:pop .3s both}
+@keyframes pop{from{transform:scale(.4)}to{transform:none}}
+.save-state{font-size:12px;color:var(--muted);font-weight:600}
+.private-note{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin:0 0 12px}
+.private-note svg{flex:none}
 /* access and sharing */
 .access-box{display:grid;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);max-width:640px}
 .acc-row{display:flex;align-items:center;gap:10px;min-width:0}
@@ -430,6 +450,7 @@ details.guide[open] summary::after{transform:rotate(45deg)}
       <span class="logo-txt">EIA Impact Assessor</span>
     </button>
     <div class="spacer"></div>
+    <span class="online" id="online" hidden></span>
     <button class="icon-btn" id="theme-btn" aria-label="Switch theme" title="Switch theme"></button>
     <img class="me" id="me-avatar" alt="" hidden>
     <button class="btn ghost" id="signout" hidden>Account</button>
@@ -518,7 +539,7 @@ const ICON = {
 function toast(msg){ document.querySelectorAll(".toast").forEach(t=>t.remove()); const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
 function countUp(el, to){
   const from = Number(el.dataset.v || 0); el.dataset.v = to;
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches || from===to){ el.textContent = to.toLocaleString(); return; }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || from===to || Date.now() < (S.quietUntil||0)){ el.textContent = to.toLocaleString(); return; }
   const t0 = performance.now(), d = 500;
   const step = now => { const p = Math.min(1,(now-t0)/d), e = 1-Math.pow(1-p,3); el.textContent = Math.round(from+(to-from)*e).toLocaleString(); if(p<1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
@@ -598,6 +619,9 @@ async function render(){
   if (S.user && ids.length){ try { S.profiles = await S.user.profiles(ids); } catch(e){} }
   if (tok !== renderTok) return;
   const app = $("#app"), v = S.view.name;
+  const ae = document.activeElement, fid = ae && ae.id && app.contains(ae) ? ae.id : null, fsel = fid && "selectionStart" in ae ? [ae.selectionStart, ae.selectionEnd] : null;
+  const vkey = v + (S.view.id||""); if (vkey !== S.lastView){ S.lastView = vkey; trackPresence(); }
+  setTimeout(()=>{ updatePresenceUI(); if (fid){ const el = document.getElementById(fid); if (el && document.activeElement!==el){ el.focus({preventScroll:true}); if (fsel) try { el.setSelectionRange(fsel[0], fsel[1]); } catch(e){} } } }, 0);
   destroyCharts();
   if (S.needAuth){ app.innerHTML = heroHTML() + authHTML(); bindAuth(); return; }
   if (v === "detail"){ const a = findA(S.view.owner, S.view.id); if (a){ app.innerHTML = detailHTML(a); afterCounts(); return; } S.view={name:"history"}; }
@@ -668,7 +692,7 @@ function cardHTML(a, i){
       <div class="peak"><span class="num">${s.peak.toLocaleString()}</span><small>peak H · ${s.n} impact${s.n===1?"":"s"}${s.scored?` · −${s.cut}% after measures`:""}</small></div>
       ${s.n ? `<span class="chip ${band(s.peak)}">${BAND_NAME[band(s.peak)]}</span>` : `<span class="tag">No impacts</span>`}
     </div>
-    <div class="who">${p.avatar?`<img src="${esc(p.avatar)}" alt="">`:""}<span>${esc(p.name)} · ${ago(a.updatedAt)}</span></div>
+    <div class="who">${p.avatar?`<img src="${esc(p.avatar)}" alt="">`:""}<span>${esc(p.name)} · ${ago(a.updatedAt)}</span><span class="pres" data-pres-a="${esc(a.id)}"></span></div>
   </button>`;
 }
 function guideHTML(){
@@ -846,7 +870,7 @@ function detailHTML(full){
   const phaseBar = full.impacts.length ? `<div class="phase-bar"><span class="lbl">Project phase</span><div class="seg" role="group" aria-label="Filter by phase">${["",...PHASES].map(x=>{ const n = x ? full.impacts.filter(i=>phasesOf(i).includes(x)).length : full.impacts.length; return `<button data-phase="${x}" aria-pressed="${ph===x}">${x||"All phases"} <span class="num" style="opacity:.6">${n}</span></button>`; }).join("")}</div></div>` : "";
   const maxOf = k => Math.max(...CRITERIA.find(c=>c.k===k).opts.map(o=>o[1]));
   const table = imps.length ? `<div class="tbl-wrap"><table><thead><tr><th>Impact</th>${CRITERIA.map(c=>`<th title="${esc(c.name)}">${c.k}</th>`).join("")}<th>H</th><th title="After mitigation">H′</th></tr></thead><tbody>
-    ${imps.map(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):null; return `<tr class="row" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}<small>${esc([i.category, phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${CRITERIA.map(c=>{ const v=scoreOf(c.k,i.sel[c.k]); const pr=(v-1)/Math.max(1,maxOf(c.k)-1); return `<td class="heat" style="--p:${pr.toFixed(2)}">${v}</td>`;}).join("")}<td class="h ${band(h)}">${h.toLocaleString()}</td><td class="${r==null?"":"h "+band(r)}">${r==null?"—":r.toLocaleString()}</td></tr>`;}).join("")}
+    ${imps.map(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):null; return `<tr class="row" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span><small>${esc([i.category, phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${CRITERIA.map(c=>{ const v=scoreOf(c.k,i.sel[c.k]); const pr=(v-1)/Math.max(1,maxOf(c.k)-1); return `<td class="heat" style="--p:${pr.toFixed(2)}">${v}</td>`;}).join("")}<td class="h ${band(h)}">${h.toLocaleString()}</td><td class="${r==null?"":"h "+band(r)}">${r==null?"—":r.toLocaleString()}</td></tr>`;}).join("")}
   </tbody></table></div>` : `${ph && full.impacts.length ? `<div class="empty"><h3>No impacts in ${esc(ph)}</h3><div>None of this assessment's impacts are marked for the ${esc(ph.toLowerCase())} phase.</div></div>` : ""}${ph && full.impacts.length ? "" : `<div class="empty"><h3>No impacts yet</h3><div>${mine?"Add the first impact this project could cause, such as an emission, a discharge or a social effect.":"The author hasn't added impacts yet."}</div>${mine?`<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button>`:""}</div>`}`;
   const st = a.status||"draft";
   const creator = isMine(full);
@@ -858,7 +882,7 @@ function detailHTML(full){
   return `
   <button class="back" data-act="home">${ICON.back} History</button>
   <section class="d-head" id="d-head">
-    <div class="meta"><span class="who">${p.avatar?`<img src="${esc(p.avatar)}" alt="">`:""}<span>${esc(p.name)}</span></span>${statusHTML(st)}${a.location?`<span>${esc(a.location)}</span>`:""}<span>Updated ${ago(a.updatedAt)}</span></div>
+    <div class="meta"><span class="pres pres-here" data-pres-a="${esc(a.id)}" data-pres-names="1"></span><span class="who">${p.avatar?`<img src="${esc(p.avatar)}" alt="">`:""}<span>${esc(p.name)}</span></span>${statusHTML(st)}${a.location?`<span>${esc(a.location)}</span>`:""}<span>Updated ${ago(a.updatedAt)}</span></div>
     <h2>${esc(a.title)}</h2>
     ${S.sb ? accessHTML(full) : ""}
     ${a.project?`<div class="eyebrow">${esc(a.project)}</div>`:""}
@@ -879,7 +903,7 @@ function detailHTML(full){
     <div class="panel"><div class="panel-h"><h3>Before and after mitigation</h3>${s.scored?`<span class="hint">Total H down ${s.cut}%</span>`:""}</div>${beforeAfterHTML(a.impacts)}</div>
   </div>`:""}
   <div class="panel"><div class="panel-h"><h3>Evaluation matrix</h3>${s.n?`<span class="hint">${mine?"Tap a row to edit":"Tap a row for details"}</span>`:""}</div>${table}</div>
-  ${s.n?`<div class="panel"><div class="panel-h"><h3>Control & mitigation</h3><span class="hint">Highest risk first${s.evidence?` · ${s.evidence} evidence file${s.evidence>1?"s":""}`:""}</span></div><div class="imp-list">${imps.map(i=>{const h=H(i.sel), r=i.rsel?H(i.rsel):null;return `<button class="imp" data-imp="${esc(i.id)}"><b>${esc(i.name)}</b><span class="chip ${band(h)}">${BAND_NAME[band(h)]} · ${h.toLocaleString()}${r!=null?` → ${r.toLocaleString()}`:""}</span>${phasesOf(i).length?`<span class="phase-row">${phaseTags(i)}</span>`:""}${i.notes?`<p>${esc(i.notes)}</p>`:""}<p>${i.mitigation?`<strong>Measures:</strong> ${esc(i.mitigation)}`:(band(h)==="high"?`<strong style="color:var(--high)">No measures recorded yet.</strong> High impacts need control or mitigation.`:"No measures recorded.")}</p>${evThumbs(i)}</button>`;}).join("")}</div></div>`:""}
+  ${s.n?`<div class="panel"><div class="panel-h"><h3>Control & mitigation</h3><span class="hint">Highest risk first${s.evidence?` · ${s.evidence} evidence file${s.evidence>1?"s":""}`:""}</span></div><div class="imp-list">${imps.map(i=>{const h=H(i.sel), r=i.rsel?H(i.rsel):null;return `<button class="imp" data-imp="${esc(i.id)}"><b>${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span></b><span class="chip ${band(h)}">${BAND_NAME[band(h)]} · ${h.toLocaleString()}${r!=null?` → ${r.toLocaleString()}`:""}</span>${phasesOf(i).length?`<span class="phase-row">${phaseTags(i)}</span>`:""}${i.notes?`<p>${esc(i.notes)}</p>`:""}<p>${i.mitigation?`<strong>Measures:</strong> ${esc(i.mitigation)}`:(band(h)==="high"?`<strong style="color:var(--high)">No measures recorded yet.</strong> High impacts need control or mitigation.`:"No measures recorded.")}</p>${evThumbs(i)}</button>`;}).join("")}</div></div>`:""}
   ${guideHTML()}`;
 }
 
@@ -934,12 +958,12 @@ const PRESETS = [
   {title:"Compliance and control gaps", type:"bar", measure:"gap", group:"project", split:"none", scale:"linear", top:12},
 ];
 const DX = {pname:{}, iname:{}};
-S.dash = (()=>{ let d=null; try { d = JSON.parse(localStorage.getItem(DASH_KEY)||"null"); } catch(e){}
+S.dash = (()=>{ const d = null;
   const base = {projects:[], phase:"", category:"", status:"", charts:[0,1,2,3].map(i=>({...PRESETS[i], id:uid("c")}))};
   if (d && Array.isArray(d.charts)) { base.charts = d.charts.filter(c=>c && TYPES[c.type]).slice(0,12); }
   return base; })();
 S.charts = [];
-function saveDash(){ try { localStorage.setItem(DASH_KEY, JSON.stringify({charts:S.dash.charts})); } catch(e){} }
+function saveDash(){ saveSettings(); }
 function destroyCharts(){ (S.charts||[]).forEach(c=>{ try{ c.destroy(); }catch(e){} }); S.charts = []; }
 
 function dashRows(){
@@ -1017,7 +1041,7 @@ function chartCardHTML(cfg, i){
     <optgroup label="Mitigation and compliance">${["meanHr","reduction","gap","noncomp"].map(k=>`<option value="${k}" ${k===cfg.measure?"selected":""}>${esc(MEASURES[k].label)}</option>`).join("")}</optgroup>
     <optgroup label="Criteria">${CRITERIA.map(c=>`<option value="c${c.k}" ${("c"+c.k)===cfg.measure?"selected":""}>${esc(MEASURES["c"+c.k].label)}</option>`).join("")}</optgroup>`;
   return `<section class="panel chart-card" data-ci="${i}">
-    <div class="cc-head"><input class="cc-title" data-f="title" value="${esc(cfg.title||"Untitled chart")}" aria-label="Chart title" maxlength="80">
+    <div class="cc-head"><input class="cc-title" id="cct-${esc(cfg.id||i)}" data-f="title" value="${esc(cfg.title||"Untitled chart")}" aria-label="Chart title" maxlength="80">
       <div class="cc-act">
         <button class="mini" data-cc="png" title="Download image (PNG)">${ICON.dl}<span>PNG</span></button>
         <button class="mini" data-cc="csv" title="Download data (CSV)">${ICON.dl}<span>CSV</span></button>
@@ -1052,6 +1076,7 @@ function dashboardHTML(){
   return `
   <div class="panel dash-filters">
     <div class="panel-h"><h3>What to analyse</h3><button class="linkbtn" data-dash="reset">Reset filters</button></div>
+    <p class="private-note">${ICON.lock} Your dashboard is private. Only you see these filters and charts, and they're saved to your account for next time.</p>
     <div class="field"><span class="lbl">Projects ${d.projects.length?`· ${d.projects.length} selected`:"· all"}</span>
       <div class="cats" id="dash-proj"><button type="button" data-dproj="" aria-pressed="${!d.projects.length}">All projects</button>${all.map(a=>`<button type="button" data-dproj="${esc(keyOf(a))}" aria-pressed="${d.projects.includes(keyOf(a))}">${esc(a.title)}</button>`).join("")}</div></div>
     <div class="cc-cfg">
@@ -1162,7 +1187,7 @@ function drawCard(card, rows){
   const valAxis = {beginAtZero:!logY, type: logY ? "logarithmic" : "linear", stacked, max: t==="stacked100"||(c.m.pct&&cfg.group==="criteria") ? 100 : undefined,
     title:{display:true, text: t==="stacked100" ? "Share of total (%)" : c.m.label}, ticks:{callback:fmtTick, precision: c.m.int ? 0 : undefined}, grid:{color:rgba(tok("--line"),.8)}};
   const catAxis = {stacked, title:{display:true, text:c.xLabel}, grid:{display:false}, ticks:{autoSkip:false, maxRotation:50, callback:function(v){ const l = this.getLabelForValue(v); return l.length>18 ? l.slice(0,17)+"…" : l; }}};
-  const options = {responsive:true, maintainAspectRatio:false, animation:{duration:700, easing:"easeOutQuart"},
+  const options = {responsive:true, maintainAspectRatio:false, animation:{duration: Date.now() < (S.quietUntil||0) ? 0 : 700, easing:"easeOutQuart"},
     plugins:{legend:{display: circ || c.series.length>1 || t==="pareto", position:"bottom", labels:{boxWidth:12, usePointStyle:true}},
       tooltip:{callbacks:{label:ctx=>{ const v = ctx.raw; return `${ctx.dataset.label}: ${t==="stacked100" ? Math.round(v)+"%" : fmtV(typeof v==="number"?v:null, ctx.dataset.label==="Cumulative %"?{pct:true}:c.m)}`; }}}}};
   if (type==="bar" || type==="line"){
@@ -1198,7 +1223,7 @@ function drawScatter(card, cfg, rows){
   const diag = {id:"diag", afterDatasetsDraw(ch){ if (!(xv==="H"&&yv==="Hr")) return; const {ctx, scales:{x,y}} = ch; const lo = Math.max(x.min,y.min), hi = Math.min(x.max,y.max); ctx.save(); ctx.strokeStyle = tok("--muted"); ctx.setLineDash([5,5]); ctx.beginPath(); ctx.moveTo(x.getPixelForValue(lo), y.getPixelForValue(lo)); ctx.lineTo(x.getPixelForValue(hi), y.getPixelForValue(hi)); ctx.stroke(); ctx.restore(); }};
   const i = Number(card.dataset.ci);
   S.charts[i] = new Chart(card.querySelector("canvas"), {type:"scatter", data:{datasets}, plugins:[bgPlugin, diag],
-    options:{responsive:true, maintainAspectRatio:false, animation:{duration:700},
+    options:{responsive:true, maintainAspectRatio:false, animation:{duration: Date.now() < (S.quietUntil||0) ? 0 : 700},
       scales:{x:ax(xv, logX), y:ax(yv, logY)},
       plugins:{legend:{display:datasets.length>1, position:"bottom", labels:{boxWidth:12, usePointStyle:true}},
         tooltip:{callbacks:{label:ctx=>{ const r = ctx.raw.r; return `${r.name} (${r.project}): ${SVARS[xv].split(" ")[0]} ${get(r,xv).toLocaleString()}, ${SVARS[yv].split(" ")[0]} ${get(r,yv).toLocaleString()}`; }}}}}});
@@ -1305,9 +1330,9 @@ function redrawCharts(){ if (S.view.name==="dashboard" && !S.needAuth) { const r
 /* dashboard interactions */
 document.addEventListener("click", e=>{
   const p = e.target.closest("[data-dproj]");
-  if (p){ const k = p.dataset.dproj; const d = S.dash; d.projects = !k ? [] : d.projects.includes(k) ? d.projects.filter(x=>x!==k) : d.projects.concat([k]); render(); return; }
+  if (p){ const k = p.dataset.dproj; const d = S.dash; d.projects = !k ? [] : d.projects.includes(k) ? d.projects.filter(x=>x!==k) : d.projects.concat([k]); saveSettings(); render(); return; }
   const r = e.target.closest("[data-dash]");
-  if (r){ if (r.dataset.dash==="reset"){ Object.assign(S.dash, {projects:[], phase:"", category:"", status:""}); render(); } else if (r.dataset.dash==="pdf") exportDashPDF(r); return; }
+  if (r){ if (r.dataset.dash==="reset"){ Object.assign(S.dash, {projects:[], phase:"", category:"", status:""}); saveSettings(); render(); } else if (r.dataset.dash==="pdf") exportDashPDF(r); return; }
   const b = e.target.closest("[data-cc]"); if (!b) return;
   const card = b.closest(".chart-card"), i = Number(card.dataset.ci), cfg = S.dash.charts[i], act = b.dataset.cc;
   if (act==="png") exportPNG(card);
@@ -1318,7 +1343,7 @@ document.addEventListener("click", e=>{
 });
 document.addEventListener("change", e=>{
   const t = e.target;
-  if (t.id==="df-phase"||t.id==="df-cat"||t.id==="df-status"){ S.dash[{"df-phase":"phase","df-cat":"category","df-status":"status"}[t.id]] = t.value; render(); return; }
+  if (t.id==="df-phase"||t.id==="df-cat"||t.id==="df-status"){ S.dash[{"df-phase":"phase","df-cat":"category","df-status":"status"}[t.id]] = t.value; saveSettings(); render(); return; }
   if (t.id==="add-chart"){ const v = t.value; if (!v) return; const cfg = v==="blank" ? {title:"New chart", type:"bar", measure:"meanH", group:"project", split:"none", scale:"linear", top:12} : {...PRESETS[Number(v)]};
     cfg.id = uid("c"); S.dash.charts.unshift(cfg); saveDash(); render(); toast("Chart added at the top"); return; }
   const card = t.closest && t.closest(".chart-card"); if (!card || !t.dataset.f || t.dataset.f==="title") return;
@@ -1352,6 +1377,7 @@ function compareHTML(){
   const cell = v => v==null ? `<td style="color:var(--muted)">—</td>` : `<td class="h ${band(v)}">${v.toLocaleString()}</td>`;
   const diff = r => { if (r.a==null||r.b==null) return `<td><span class="diff eq">only in ${r.a==null?"B":"A"}</span></td>`; const d=r.b-r.a; return `<td><span class="diff ${d>0?"up":d<0?"down":"eq"}">${d>0?"+":""}${d.toLocaleString()}</span></td>`; };
   return `
+  <p class="private-note">${ICON.lock} Your comparison is private and saved to your account.</p>
   <div class="cmp-pick">
     <div class="field"><label for="cmp-a">Assessment A</label><select id="cmp-a">${opt(S.cmp.a)}</select></div>
     <div class="vs">vs</div>
@@ -1368,19 +1394,180 @@ function openSheet(html, onMount){
   const layer = $("#layer");
   layer.innerHTML = `<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
   document.body.style.overflow = "hidden";
-  $("#scrim").addEventListener("click", e=>{ if(e.target.id==="scrim") closeSheet(); });
+  $("#scrim").addEventListener("click", e=>{ if(e.target.id==="scrim") (S.closeActive || closeSheet)(); });
   onMount && onMount($(".sheet"));
-  setTimeout(()=>{ const f=$(".sheet input:not([type=hidden]):not([type=file])"); f && f.focus({preventScroll:true}); }, 60);
+  setTimeout(()=>{ if ($(".sheet [data-noautofocus]")) return; const f=$(".sheet input:not([type=hidden]):not([type=file])"); f && f.focus({preventScroll:true}); }, 60);
 }
-function closeSheet(){ $("#layer").innerHTML=""; document.body.style.overflow=""; }
-document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("#scrim")) closeSheet(); });
+function closeSheet(){ S.closeActive = null; $("#layer").innerHTML=""; document.body.style.overflow=""; }
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("#scrim")) (S.closeActive || closeSheet)(); });
 
-function assessmentSheet(a){
-  const isNew = !a;
+/* ---------- Live co-editing ---------- */
+// Every edit is a small operation. It is applied to the screen at once,
+// then sent to the database, which applies it to the latest version under
+// a row lock. Edits not yet confirmed are re-applied on top of anything that
+// arrives from other people, so nobody's work is overwritten.
+const clone = o => o===undefined ? null : JSON.parse(JSON.stringify(o));
+S.pend = []; S.seq = 0; S.chain = {};
+function applyOps(d, ops){
+  d.impacts = d.impacts || [];
+  for (const op of ops){
+    if (op.op==="field") d[op.key] = clone(op.value);
+    else if (op.op==="imp_add"){ if (op.value && !d.impacts.some(i=>i.id===op.value.id)) d.impacts.push(clone(op.value)); }
+    else if (op.op==="imp_del") d.impacts = d.impacts.filter(i=>i.id!==op.imp);
+    else {
+      const i = d.impacts.find(x=>x.id===op.imp); if (!i) continue;
+      if (op.op==="imp_set"){ let o = i; for (let k=0; k<op.path.length-1; k++){ const nx = o[op.path[k]]; if (nx==null || typeof nx!=="object"){ o = null; break; } o = nx; } if (o) o[op.path[op.path.length-1]] = clone(op.value); }
+      else if (op.op==="ev_add") i.evidence = (i.evidence||[]).concat([clone(op.value)]);
+      else if (op.op==="ev_del") i.evidence = (i.evidence||[]).filter(e=>e.id!==op.id);
+    }
+  }
+  return d;
+}
+function withPending(id, doc){ const d = clone(doc); S.pend.filter(p=>p.id===id).forEach(p=>applyOps(d, p.ops)); return d; }
+function itemRef(id){
+  for (const [owner, b] of Object.entries(S.docs)){ const it = (b.items||[]).find(x=>x.id===id); if (it) return {it, owner}; }
+  if (S.offline){ const it = (local.items||[]).find(x=>x.id===id); if (it) return {it, owner:"local"}; }
+  return null;
+}
+function liveA(id){ const r = itemRef(id); return r ? {...r.it, owner:r.owner} : null; }
+function serverDoc(id, doc){
+  const r = itemRef(id); if (!r){ clearTimeout(S.rt); S.rt = setTimeout(loadAll, 300); return; }
+  const share = r.it._share, d = withPending(id, doc);
+  Object.keys(r.it).forEach(k=>delete r.it[k]); Object.assign(r.it, d, {id, _share:share});
+  docsChanged();
+}
+let dcT;
+function docsChanged(){
+  S.quietUntil = Date.now() + 900;
+  if (S.sheetSync) S.sheetSync();
+  clearTimeout(dcT); dcT = setTimeout(()=>{ S.quietUntil = Date.now() + 900; render(); }, S.view.name==="dashboard" ? 1200 : 60);
+}
+function saveState(id){ return S.pend.some(p=>p.id===id) ? "Saving…" : "All changes saved"; }
+function live(a, ops){
+  if (!a || !canEditA(a)){ toast("You have view-only access to this assessment"); return Promise.resolve(false); }
+  const id = a.id, r = itemRef(id); if (!r) return Promise.resolve(false);
+  // offline copy, or database not updated yet: change the whole assessment
+  if (!S.sb || S.patchOff){
+    const next = applyOps(clone(strip({...r.it})), ops);
+    const pr = upsert(next, ""); if (S.sheetSync) S.sheetSync(); return pr;
+  }
+  const p = {seq:++S.seq, id, ops}; S.pend.push(p);
+  applyOps(r.it, ops); r.it.updatedAt = Date.now(); r.it.updatedBy = S.meId;
+  docsChanged();
+  S.chain[id] = (S.chain[id] || Promise.resolve()).then(async ()=>{
+    const {data, error} = await S.sb.rpc("apply_assessment_patch", {p_id:id, p_ops:ops});
+    S.pend = S.pend.filter(x=>x!==p);
+    if (error){
+      if (/apply_assessment_patch|could not find the function|PGRST202/i.test((error.message||"")+" "+(error.code||""))){
+        S.patchOff = true; toast("Run the updated supabase-setup.sql in Supabase to switch on live co-editing");
+        const cur = itemRef(id); if (cur) return upsert(strip({...cur.it}), "");
+      } else toast("Couldn't save: " + (error.message || "check your connection"));
+      loadAll(); return false;
+    }
+    serverDoc(id, data); return true;
+  });
+  return S.chain[id];
+}
+
+/* ---------- Who's here ---------- */
+S.pres = {};
+function others(){
+  return Object.entries(S.pres||{}).filter(([k])=>k!==S.meId).map(([k, metas])=>{
+    const m = (metas||[]).reduce((x,y)=>((y.at||0) > (x.at||0) ? y : x), (metas||[])[0] || {});
+    return {id:k, ...m};
+  }).filter(o=>o.at);
+}
+function presenceStart(){
+  if (!S.sb || S.presCh) return;
+  try {
+    const ch = S.sb.channel("eia-presence", {config:{presence:{key:S.meId}}});
+    ch.on("presence", {event:"sync"}, ()=>{ S.pres = ch.presenceState(); updatePresenceUI(); })
+      .subscribe(st=>{ if (st==="SUBSCRIBED"){ S.presCh = ch; trackPresence(); } });
+  } catch(e){}
+}
+let prT;
+function trackPresence(){
+  clearTimeout(prT);
+  prT = setTimeout(()=>{
+    if (!S.presCh) return;
+    const v = S.view, ed = S.editing || {};
+    Promise.resolve(S.presCh.track({a: ed.a || (v.name==="detail" ? v.id : null), imp: ed.imp || null, field: ed.field || null, at: Date.now()})).catch(()=>{});
+  }, 250);
+}
+function avStack(list, max){
+  max = max || 4;
+  return list.slice(0, max).map(o=>avatarHTML(o.id, nameOf(o.id)).replace('class="av"', `class="av sm" title="${esc(nameOf(o.id))}"`)).join("") + (list.length > max ? `<span class="av sm more">+${list.length-max}</span>` : "");
+}
+const FIELD_NAME = {name:"the name", notes:"notes", mitigation:"measures", category:"category", phases:"phases", details:"the details", ...Object.fromEntries(CRITERIA.map(c=>[c.k, c.k+" · "+c.name]))};
+function updatePresenceUI(){
+  const os = others();
+  const on = $("#online");
+  if (on){ on.innerHTML = os.length ? avStack(os, 4) : ""; on.title = os.length ? "Online now: " + os.map(o=>nameOf(o.id)).join(", ") : ""; on.hidden = !os.length; }
+  document.querySelectorAll("[data-pres-a]").forEach(el=>{
+    const here = os.filter(o=>o.a===el.dataset.presA);
+    el.innerHTML = here.length ? avStack(here, 3) + (el.dataset.presNames ? `<span class="pres-txt">${esc(here.map(o=>nameOf(o.id).split(" ")[0]).join(", "))} ${here.length>1?"are":"is"} here</span>` : "") : "";
+  });
+  document.querySelectorAll("[data-pres-imp]").forEach(el=>{
+    const here = os.filter(o=>o.imp===el.dataset.presImp);
+    el.innerHTML = here.length ? avStack(here, 2) + `<span class="pres-txt">editing</span>` : "";
+  });
+  const ed = S.editing || {};
+  const sb = $("#pres-sheet");
+  if (sb){
+    const here = os.filter(o=>ed.imp ? o.imp===ed.imp : (o.a===ed.a && o.field==="details"));
+    sb.hidden = !here.length;
+    sb.innerHTML = here.length ? avStack(here, 3) + `<span>${esc(here.map(o=>nameOf(o.id)).join(", "))} ${here.length>1?"are":"is"} also editing${here[0].field && FIELD_NAME[here[0].field] && here.length===1 ? " " + esc(FIELD_NAME[here[0].field]) : ""}. Changes appear as they're made.</span>` : "";
+  }
+  document.querySelectorAll("[data-pres-field]").forEach(el=>{
+    const here = os.filter(o=>o.field===el.dataset.presField && (ed.imp ? o.imp===ed.imp : o.a===ed.a));
+    el.innerHTML = here.length ? avStack(here, 2) : "";
+  });
+}
+function setEditing(e){ S.editing = e; trackPresence(); updatePresenceUI(); }
+
+/* ---------- Private workspace (dashboard + compare) ---------- */
+function settingsKey(){ return DASH_KEY + ":" + (S.meId || "local"); }
+function applySettings(x){
+  if (!x) return;
+  const d = x.dash || x.dashboard;
+  if (d){
+    if (Array.isArray(d.charts)) S.dash.charts = d.charts.filter(c=>c && TYPES[c.type]).slice(0,12);
+    S.dash.projects = Array.isArray(d.projects) ? d.projects : [];
+    S.dash.phase = d.phase || ""; S.dash.category = d.category || ""; S.dash.status = d.status || "";
+  }
+  const c = x.cmp || x.compare; if (c) S.cmp = {a:c.a||"", b:c.b||""};
+}
+async function loadSettings(){
+  let x = null; try { x = JSON.parse(localStorage.getItem(settingsKey()) || "null"); } catch(e){}
+  if (S.sb){
+    const {data, error} = await S.sb.from("user_settings").select("dashboard,compare").eq("user_id", S.meId).maybeSingle();
+    if (error) S.settingsOff = true; else if (data) x = {dash:data.dashboard, cmp:data.compare};
+  }
+  applySettings(x);
+}
+let ssT;
+function saveSettings(){
+  clearTimeout(ssT);
+  ssT = setTimeout(async ()=>{
+    const d = S.dash, dash = {charts:d.charts, projects:d.projects, phase:d.phase, category:d.category, status:d.status}, cmp = {a:S.cmp.a||"", b:S.cmp.b||""};
+    try { localStorage.setItem(settingsKey(), JSON.stringify({dash, cmp})); } catch(e){}
+    if (S.sb && S.meId && !S.settingsOff){
+      const {error} = await S.sb.from("user_settings").upsert({user_id:S.meId, dashboard:dash, compare:cmp, updated_at:new Date().toISOString()});
+      if (error) S.settingsOff = true;
+    }
+  }, 700);
+}
+
+/* ---------- Assessment details ---------- */
+function assessmentSheet(a0){
+  const isNew = !a0;
+  const A = () => isNew ? null : liveA(a0.id);
+  const a = A();
   openSheet(`
-    <div class="sheet-h"><h3>${isNew?"New assessment":"Edit details"}</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
+    <div class="sheet-h"><h3>${isNew?"New assessment":"Assessment details"}</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
     <form class="sheet-b" id="a-form" novalidate>
-      <div class="field"><label for="a-title">Assessment name</label><input id="a-title" required maxlength="120" placeholder="e.g. Coastal desalination plant — operation phase" value="${esc(a?.title)}"></div>
+      ${isNew ? "" : `<div class="pres-banner" id="pres-sheet" hidden></div>`}
+      <div class="field"><label for="a-title">Assessment name <span class="pres-f" data-pres-field="details"></span></label><input id="a-title" required maxlength="120" placeholder="e.g. Coastal desalination plant — operation phase" value="${esc(a?.title)}"></div>
       <div class="two">
         <div class="field"><label for="a-project">Project / proponent</label><input id="a-project" maxlength="120" placeholder="Project or company" value="${esc(a?.project)}"></div>
         <div class="field"><label for="a-loc">Location</label><input id="a-loc" maxlength="80" placeholder="Site or region" value="${esc(a?.location)}"></div>
@@ -1388,21 +1575,46 @@ function assessmentSheet(a){
       <div class="field"><label for="a-desc">Scope</label><textarea id="a-desc" maxlength="1200" placeholder="Project stage, activities covered, assumptions">${esc(a?.description)}</textarea></div>
       <p id="a-err" class="lede" style="color:var(--high);font-size:13px" hidden>Give the assessment a name.</p>
     </form>
-    <div class="sheet-f"><button class="btn ghost" data-close>Cancel</button><div class="spacer"></div><button class="btn primary" id="a-save">${isNew?"Create and add impacts":"Save details"}</button></div>`,
+    <div class="sheet-f">${isNew
+      ? `<button class="btn ghost" data-close>Cancel</button><div class="spacer"></div><button class="btn primary" id="a-save">Create and add impacts</button>`
+      : `<span class="save-state" id="save-state">${saveState(a0.id)}</span><div class="spacer"></div><button class="btn primary" id="a-done">Done</button>`}</div>`,
   sh=>{
-    sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", closeSheet));
-    const submit = async e=>{ e && e.preventDefault();
-      const title = $("#a-title").value.trim(); if(!title){ $("#a-err").hidden=false; $("#a-title").focus(); return; }
-      const base = a ? strip(a) : {id:uid("a"), createdAt:Date.now(), impacts:[], status:"draft"};
-      Object.assign(base, {title, project:$("#a-project").value.trim(), location:$("#a-loc").value.trim(), description:$("#a-desc").value.trim()});
-      closeSheet();
-      const ok = await upsert(base, isNew ? "Assessment created" : "Details updated");
-      if (ok){ toast(isNew?"Assessment created":"Details saved"); S.view={name:"detail", owner:S.offline?"local":S.meId, id:base.id}; window.scrollTo({top:0}); render(); if(isNew) setTimeout(()=>impactSheet(findA(S.view.owner, base.id)||base, null), 250); }
+    const fields = {title:"#a-title", project:"#a-project", location:"#a-loc", description:"#a-desc"};
+    const timers = {};
+    const flush = key => { clearTimeout(timers[key]); delete timers[key]; const v = $(fields[key]).value.trim(); const cur = A(); if (!cur) return;
+      if (key==="title" && !v){ $("#a-err").hidden = false; return; } $("#a-err").hidden = true;
+      if ((cur[key]||"") !== v) live(cur, [{op:"field", key, value:v}]); };
+    const close = () => { Object.keys(timers).forEach(flush); S.sheetSync = null; setEditing(null); closeSheet(); };
+    sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", close));
+    if (isNew){
+      const submit = async e=>{ e && e.preventDefault();
+        const title = $("#a-title").value.trim(); if(!title){ $("#a-err").hidden=false; $("#a-title").focus(); return; }
+        const base = {id:uid("a"), createdAt:Date.now(), impacts:[], status:"draft", title, project:$("#a-project").value.trim(), location:$("#a-loc").value.trim(), description:$("#a-desc").value.trim()};
+        closeSheet();
+        const ok = await upsert(base, "");
+        if (ok){ toast("Assessment created"); S.view={name:"detail", owner:S.offline?"local":S.meId, id:base.id}; window.scrollTo({top:0}); render(); setTimeout(()=>{ const fa = liveA(base.id); if (fa) impactSheet(fa, null); }, 250); }
+      };
+      $("#a-form").addEventListener("submit", submit); $("#a-save").addEventListener("click", submit);
+      return;
+    }
+    $("#a-form").addEventListener("submit", e=>e.preventDefault());
+    $("#a-done").addEventListener("click", close); S.closeActive = close;
+    Object.entries(fields).forEach(([key, sel])=>{
+      const el = $(sel);
+      el.addEventListener("input", ()=>{ clearTimeout(timers[key]); timers[key] = setTimeout(()=>flush(key), 600); $("#save-state").textContent = "Saving…"; });
+      el.addEventListener("blur", ()=>{ if (timers[key]) flush(key); });
+      el.addEventListener("focus", ()=>setEditing({a:a0.id, imp:null, field:"details"}));
+    });
+    S.sheetSync = () => {
+      const cur = A(); if (!cur){ close(); toast("This assessment was deleted"); return; }
+      Object.entries(fields).forEach(([key, sel])=>{ const el = $(sel); if (el && document.activeElement!==el && !timers[key] && el.value !== (cur[key]||"")) el.value = cur[key]||""; });
+      const ss = $("#save-state"); if (ss) ss.textContent = Object.keys(timers).length ? "Saving…" : saveState(a0.id);
     };
-    $("#a-form").addEventListener("submit", submit); $("#a-save").addEventListener("click", submit);
+    setEditing({a:a0.id, imp:null, field:"details"});
   });
 }
 
+/* ---------- AI helper ---------- */
 function aiPrompt(a, cur){
   const crit = CRITERIA.map(c=>`${c.k} ${c.name}: `+c.opts.map((o,ix)=>`${ix} = ${o[0]} (score ${o[1]})`).join("; ")).join("\n");
   return `You are an environmental impact assessment specialist. Score one impact with the evaluation matrix below. For each criterion, pick the 0-based index of the option that fits best.
@@ -1411,7 +1623,7 @@ Project: ${a.title}${a.project?" — "+a.project:""}${a.location?", "+a.location
 Scope: ${a.description||"not given"}
 Impact: ${cur.name}
 Category: ${cur.category}
-Project phase(s) when it occurs: ${cur.phases.join(", ")||"not given"}
+Project phase(s) when it occurs: ${phasesOf(cur).join(", ")||"not given"}
 Notes from the assessor: ${cur.notes||"none"}
 Measures already planned: ${cur.mitigation||"none"}
 
@@ -1426,39 +1638,49 @@ Reply with only JSON in this shape:
 }
 function validSel(o){ if(!o||typeof o!=="object") return null; const s={}; for(const c of CRITERIA){ const v=Number(o[c.k]); if(!Number.isInteger(v)||v<0||v>=c.opts.length) return null; s[c.k]=v; } return s; }
 
-function impactSheet(a, imp, readOnly){
-  const isNew = !imp;
-  const cur = imp ? JSON.parse(JSON.stringify(imp)) : {id:uid("i"), name:"", category:"Air", phases:[S.phase||"Operation"], notes:"", mitigation:"", sel:{}, evidence:[]};
-  cur.phases = phasesOf(cur);
-  cur.evidence = cur.evidence || [];
-  CRITERIA.forEach(c=>{ if(cur.sel[c.k]==null) cur.sel[c.k] = c.opts.length-1; });
-  let mode = "now";
+/* ---------- Impact editor: every change saves at once ---------- */
+function impactSheet(a0, imp0, readOnly){
+  const aid = a0.id;
+  let impId = imp0 ? imp0.id : null, createdHere = false, touched = false, mode = "now";
+  if (!imp0){
+    if (readOnly) return;
+    const fresh = {id:uid("i"), name:"New impact", category:"Air", phases:[S.phase||"Operation"], notes:"", mitigation:"",
+      sel:Object.fromEntries(CRITERIA.map(c=>[c.k, c.opts.length-1])), evidence:[]};
+    impId = fresh.id; createdHere = true;
+    live(a0, [{op:"imp_add", value:fresh}]);
+  }
+  const A = () => liveA(aid);
+  const I = () => { const a = A(); return a && a.impacts.find(i=>i.id===impId); };
+  const i0 = I(); if (!i0) return;
   const ro = readOnly ? "disabled" : "";
   const g1 = logPos(25), g2 = logPos(200);
-  const critHTML = () => { const sel = mode==="now" ? cur.sel : (cur.rsel||cur.sel); return CRITERIA.map(c=>`<div class="crit" role="radiogroup" aria-label="${c.k}: ${esc(c.name)}">
-      <div class="crit-h"><span class="k">${c.k}</span><b>${esc(c.name)}</b><span class="num" id="sc-${c.k}">${scoreOf(c.k,sel[c.k])}</span></div>
+  const timers = {};
+  const set = (path, value) => { touched = true; return live(A(), [{op:"imp_set", imp:impId, path, value}]); };
+  const critHTML = () => { const i = I(); const sel = mode==="now" ? i.sel : (i.rsel||i.sel); return CRITERIA.map(c=>`<div class="crit" role="radiogroup" aria-label="${c.k}: ${esc(c.name)}">
+      <div class="crit-h"><span class="k">${c.k}</span><b>${esc(c.name)}</b><span class="pres-f" data-pres-field="${c.k}"></span><span class="num" id="sc-${c.k}">${scoreOf(c.k,sel[c.k])}</span></div>
       <div class="opts">${c.opts.map((o,idx)=>`<button type="button" class="opt" role="radio" ${ro} data-k="${c.k}" data-idx="${idx}" aria-checked="${sel[c.k]===idx}"><span class="rdot"></span><span class="t">${esc(o[0])}</span><span class="sc">${o[1]}</span></button>`).join("")}</div>
     </div>`).join(""); };
-  const evHTML = () => `<div class="ev">${cur.evidence.map((e,ix)=>`<div class="ev-item">${/^image\//.test(e.type)?`<a href="${esc(blobUrl(e.id))}" target="_blank" rel="noopener"><img src="${esc(blobUrl(e.id))}" alt="${esc(e.name)}"></a>`:`<a href="${esc(blobUrl(e.id))}" target="_blank" rel="noopener">${ICON.file}<span>${esc(e.name)}</span></a>`}${readOnly?"":`<button type="button" class="ev-x" data-evx="${ix}" aria-label="Remove ${esc(e.name)}">${ICON.close}</button>`}</div>`).join("")}
+  const evHTML = () => { const ev = I().evidence || []; return `<div class="ev">${ev.map(e=>`<div class="ev-item">${/^image\//.test(e.type)?`<a href="${esc(blobUrl(e.id))}" target="_blank" rel="noopener"><img src="${esc(blobUrl(e.id))}" alt="${esc(e.name)}"></a>`:`<a href="${esc(blobUrl(e.id))}" target="_blank" rel="noopener">${ICON.file}<span>${esc(e.name)}</span></a>`}${readOnly?"":`<button type="button" class="ev-x" data-evx="${esc(e.id)}" aria-label="Remove ${esc(e.name)}">${ICON.close}</button>`}</div>`).join("")}
     ${!readOnly && S.assets ? `<label class="ev-item ev-add" for="ev-in">${ICON.clip}<span>Attach photo or file</span></label>` : ""}</div>
     ${!readOnly && S.assets ? `<input type="file" id="ev-in" multiple accept="image/*,application/pdf,.csv,.txt" hidden>` : ""}
     ${!readOnly && !S.assets ? `<p class="lede" style="font-size:12px">Attaching files needs edit access to this app.</p>` : ""}
-    ${readOnly && !cur.evidence.length ? `<p class="lede" style="font-size:13px">No evidence attached.</p>` : ""}`;
+    ${readOnly && !ev.length ? `<p class="lede" style="font-size:13px">No evidence attached.</p>` : ""}`; };
   openSheet(`
-    <div class="sheet-h"><h3>${readOnly?esc(cur.name):(isNew?"Add impact":"Edit impact")}</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
-    <div class="sheet-b" id="imp-body">
-      ${readOnly?"":`<div class="field"><label for="i-name">Impact</label><input id="i-name" maxlength="80" placeholder="e.g. NOx emissions, dust, wastewater discharge" value="${esc(cur.name)}"></div>`}
-      <div class="field"><span class="lbl">Category</span><div class="cats" id="cats">${CATS.map(c=>`<button type="button" ${ro} data-cat="${esc(c)}" aria-pressed="${cur.category===c}">${esc(c)}</button>`).join("")}</div></div>
-      <div class="field"><span class="lbl">Project phase · when is this impact faced? (pick all that apply)</span><div class="cats phases" id="phases">${PHASES.map(p=>`<button type="button" ${ro} data-ph="${p}" aria-pressed="${cur.phases.includes(p)}">${p}</button>`).join("")}</div>${readOnly && !cur.phases.length?`<p class="lede" style="font-size:13px">No phase recorded.</p>`:""}</div>
+    <div class="sheet-h"><h3 id="imp-title">${esc(i0.name || "Impact")}</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
+    <div class="sheet-b" id="imp-body" ${createdHere ? "" : "data-noautofocus"}>
+      <div class="pres-banner" id="pres-sheet" hidden></div>
+      ${readOnly?"":`<div class="field"><label for="i-name">Impact <span class="pres-f" data-pres-field="name"></span></label><input id="i-name" maxlength="80" placeholder="e.g. NOx emissions, dust, wastewater discharge" value="${esc(i0.name)}"></div>`}
+      <div class="field"><span class="lbl">Category <span class="pres-f" data-pres-field="category"></span></span><div class="cats" id="cats">${CATS.map(c=>`<button type="button" ${ro} data-cat="${esc(c)}" aria-pressed="${i0.category===c}">${esc(c)}</button>`).join("")}</div></div>
+      <div class="field"><span class="lbl">Project phase · when is this impact faced? (pick all that apply) <span class="pres-f" data-pres-field="phases"></span></span><div class="cats phases" id="phases">${PHASES.map(p=>`<button type="button" ${ro} data-ph="${p}" aria-pressed="${phasesOf(i0).includes(p)}">${p}</button>`).join("")}</div><p class="lede" id="ph-warn" style="font-size:13px;color:var(--high)" ${phasesOf(i0).length?"hidden":""}>${readOnly?"No phase recorded.":"Pick at least one phase."}</p></div>
       ${!readOnly && S.sample ? `<div class="ai"><div class="ai-top"><b>AI scoring assistant<small>Suggests A–G scores, measures and the residual score from your description.</small></b><button type="button" class="btn primary" id="ai-go">${ICON.spark} Suggest</button></div><p id="ai-out" hidden></p></div>` : ""}
       <div class="mode"><div class="seg" role="group" aria-label="Score">
         <button type="button" data-mode="now" aria-pressed="true">Current risk</button>
         <button type="button" data-mode="after" aria-pressed="false">After mitigation</button>
-      </div><span class="hint" id="mode-hint">${cur.rsel?"Residual score recorded":"Not scored after mitigation yet"}</span>${!readOnly?`<button type="button" class="linkbtn" id="clear-r" ${cur.rsel?"":"hidden"}>Clear residual</button>`:""}</div>
+      </div><span class="hint" id="mode-hint"></span>${!readOnly?`<button type="button" class="linkbtn" id="clear-r" hidden>Clear residual</button>`:""}</div>
       <div id="crit-box" style="display:grid;gap:12px">${critHTML()}</div>
       <div class="two">
-        <div class="field"><label for="i-notes">Source / notes</label><textarea id="i-notes" ${ro} maxlength="600" placeholder="Where it comes from, evidence, data used">${esc(cur.notes)}</textarea></div>
-        <div class="field"><label for="i-mit">Control & mitigation measures</label><textarea id="i-mit" ${ro} maxlength="600" placeholder="What will reduce this impact">${esc(cur.mitigation)}</textarea></div>
+        <div class="field"><label for="i-notes">Source / notes <span class="pres-f" data-pres-field="notes"></span></label><textarea id="i-notes" ${ro} maxlength="600" placeholder="Where it comes from, evidence, data used">${esc(i0.notes)}</textarea></div>
+        <div class="field"><label for="i-mit">Control & mitigation measures <span class="pres-f" data-pres-field="mitigation"></span></label><textarea id="i-mit" ${ro} maxlength="600" placeholder="What will reduce this impact">${esc(i0.mitigation)}</textarea></div>
       </div>
       <div class="field"><span class="lbl">Evidence</span><div id="ev-box">${evHTML()}</div></div>
       <div class="live" aria-live="polite">
@@ -1467,83 +1689,109 @@ function impactSheet(a, imp, readOnly){
         <div class="gauge-l"><span>1</span><span>25</span><span>200</span><span>${MAXH.toLocaleString()}</span></div>
       </div>
     </div>
-    <div class="sheet-f">${readOnly?`<span class="tag">${ICON.lock} Read only</span><div class="spacer"></div><button class="btn" data-close>Close</button>`:
-      `${isNew?"":`<button class="btn danger" id="i-del">Remove</button>`}<div class="spacer"></div><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="i-save">${isNew?"Add impact":"Save changes"}</button>`}</div>`,
+    <div class="sheet-f">${readOnly?`<span class="tag">${ICON.lock} View only</span><div class="spacer"></div><button class="btn" data-close>Close</button>`:
+      `<button class="btn danger" id="i-del">Remove</button><span class="save-state" id="save-state"></span><div class="spacer"></div><button class="btn primary" data-close>Done</button>`}</div>`,
   sh=>{
-    sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", closeSheet));
-    const live = ()=>{
-      const h = H(cur.sel), b = band(h);
-      countUp($("#live-h"), h);
-      $("#live-h").style.color = `var(--${b})`;
+    const textF = {name:"#i-name", notes:"#i-notes", mitigation:"#i-mit"};
+    const flush = key => { clearTimeout(timers[key]); delete timers[key]; const el = $(textF[key]); const i = I(); if (!el || !i) return;
+      const v = el.value.trim(); if (key==="name" && !v) return; if ((i[key]||"") !== v) set([key], v); };
+    const close = () => {
+      Object.keys(timers).forEach(flush);
+      S.sheetSync = null; setEditing(null); closeSheet();
+      if (createdHere && !touched && I()) live(A(), [{op:"imp_del", imp:impId}]);
+    };
+    sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", close));
+    S.closeActive = close;
+    const paintCrit = () => { const i = I(); const sel = mode==="now" ? i.sel : (i.rsel||i.sel);
+      CRITERIA.forEach(c=>{ sh.querySelectorAll(`.opt[data-k="${c.k}"]`).forEach(o=>o.setAttribute("aria-checked", String(Number(o.dataset.idx)===sel[c.k]))); const sc = $("#sc-"+c.k); if (sc) sc.textContent = scoreOf(c.k, sel[c.k]); }); };
+    const paint = (animate) => {
+      const i = I();
+      if (!i){ S.sheetSync = null; setEditing(null); closeSheet(); toast("Someone removed this impact"); return; }
+      const h = H(i.sel), b = band(h);
+      const lh = $("#live-h"); if (animate) countUp(lh, h); else { lh.dataset.v = h; lh.textContent = h.toLocaleString(); }
+      lh.style.color = `var(--${b})`;
       const lb = $("#live-band"); lb.className = "chip "+b; lb.textContent = BAND_NAME[b] + " · " + BAND_RULE[b];
-      const shown = mode==="now" ? cur.sel : (cur.rsel||cur.sel);
+      const shown = mode==="now" ? i.sel : (i.rsel||i.sel);
       $("#live-eq").textContent = (mode==="after"?"After: ":"") + CRITERIA.map(c=>scoreOf(c.k,shown[c.k])).join(" × ") + " = " + H(shown).toLocaleString();
       $("#needle").style.left = logPos(h) + "%";
       const nr = $("#needle-r"), la = $("#live-after");
-      if (cur.rsel){ const r=H(cur.rsel), d=pct(h,r); nr.hidden=false; nr.style.left=logPos(r)+"%"; la.innerHTML = `<span class="arrow">→</span><b style="color:var(--${band(r)})">${r.toLocaleString()}</b><span style="color:${d>0?"var(--low)":"var(--muted)"}">${d>0?"−"+d+"%":""}</span>`; }
-      else { nr.hidden=true; la.innerHTML=""; }
-      $("#mode-hint").textContent = cur.rsel ? "Residual score recorded" : "Not scored after mitigation yet";
-      const cr = $("#clear-r"); if (cr) cr.hidden = !cur.rsel;
+      if (i.rsel){ const r = H(i.rsel), d = pct(h,r); nr.hidden = false; nr.style.left = logPos(r)+"%"; la.innerHTML = `<span class="arrow">→</span><b style="color:var(--${band(r)})">${r.toLocaleString()}</b><span style="color:${d>0?"var(--low)":"var(--muted)"}">${d>0?"−"+d+"%":""}</span>`; }
+      else { nr.hidden = true; la.innerHTML = ""; }
+      $("#mode-hint").textContent = i.rsel ? "Residual score recorded" : "Not scored after mitigation yet";
+      const cr = $("#clear-r"); if (cr) cr.hidden = !i.rsel;
+      paintCrit();
+      sh.querySelectorAll("[data-cat]").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.cat===i.category)));
+      const ph = phasesOf(i); sh.querySelectorAll("[data-ph]").forEach(o=>o.setAttribute("aria-pressed", String(ph.includes(o.dataset.ph)))); $("#ph-warn").hidden = !!ph.length;
+      Object.entries(textF).forEach(([k, sel])=>{ const el = $(sel); if (el && document.activeElement!==el && !timers[k] && el.value !== (i[k]||"")) el.value = i[k]||""; });
+      $("#imp-title").textContent = i.name || "Impact";
+      const ids = (i.evidence||[]).map(e=>e.id).join(","); const box = $("#ev-box"); if (box.dataset.ids !== ids && !box.querySelector(".spin")){ box.dataset.ids = ids; box.innerHTML = evHTML(); bindEv(); }
+      const ss = $("#save-state"); if (ss) ss.textContent = Object.keys(timers).length ? "Saving…" : saveState(aid);
     };
-    const bindCrit = ()=>{ sh.querySelectorAll(".opt").forEach(btn=>btn.addEventListener("click", ()=>{
-      const k = btn.dataset.k, idx = Number(btn.dataset.idx);
-      if (mode==="after"){ if(!cur.rsel) cur.rsel = {...cur.sel}; cur.rsel[k]=idx; } else cur.sel[k] = idx;
-      sh.querySelectorAll(`.opt[data-k="${k}"]`).forEach(o=>o.setAttribute("aria-checked", String(o===btn)));
-      const sc = $("#sc-"+k); sc.textContent = scoreOf(k, idx); sc.style.color = "var(--accent-text)"; setTimeout(()=>sc.style.color="",400);
-      live();
-    })); };
-    const redrawCrit = ()=>{ $("#crit-box").innerHTML = critHTML(); bindCrit(); };
+    S.sheetSync = () => paint(false);
+    // scores
+    sh.querySelector("#crit-box").addEventListener("click", e=>{
+      const btn = e.target.closest(".opt"); if (!btn || readOnly) return;
+      const k = btn.dataset.k, idx = Number(btn.dataset.idx), i = I();
+      setEditing({a:aid, imp:impId, field:k});
+      if (mode==="after") (i.rsel ? set(["rsel", k], idx) : set(["rsel"], {...i.sel, [k]:idx})); else set(["sel", k], idx);
+      const sc = $("#sc-"+k); if (sc){ sc.style.color = "var(--accent-text)"; setTimeout(()=>sc.style.color="", 400); }
+      paint(true);
+    });
     sh.querySelectorAll("[data-mode]").forEach(btn=>btn.addEventListener("click", ()=>{
       mode = btn.dataset.mode; sh.querySelectorAll("[data-mode]").forEach(o=>o.setAttribute("aria-pressed", String(o===btn)));
-      if (mode==="after" && !cur.rsel && !readOnly){ cur.rsel = {...cur.sel}; toast("Start from the current scores and lower what your measures improve"); }
-      redrawCrit(); live();
+      const i = I(); if (mode==="after" && !i.rsel && !readOnly){ set(["rsel"], {...i.sel}); toast("Start from the current scores and lower what your measures improve"); }
+      paint(false);
     }));
-    const cr = $("#clear-r"); if (cr) cr.addEventListener("click", ()=>{ delete cur.rsel; mode="now"; sh.querySelectorAll("[data-mode]").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.mode==="now"))); redrawCrit(); live(); });
-    sh.querySelectorAll("[data-ph]").forEach(btn=>btn.addEventListener("click", ()=>{ const p=btn.dataset.ph; cur.phases = cur.phases.includes(p) ? cur.phases.filter(x=>x!==p) : PHASES.filter(x=>x===p||cur.phases.includes(x)); btn.setAttribute("aria-pressed", String(cur.phases.includes(p))); }));
-    sh.querySelectorAll("[data-cat]").forEach(btn=>btn.addEventListener("click", ()=>{ cur.category = btn.dataset.cat; sh.querySelectorAll("[data-cat]").forEach(o=>o.setAttribute("aria-pressed", String(o===btn))); }));
-    bindCrit(); live();
-    if (readOnly) return;
-
+    const cr = $("#clear-r"); if (cr) cr.addEventListener("click", ()=>{ set(["rsel"], null); mode = "now"; sh.querySelectorAll("[data-mode]").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.mode==="now"))); paint(false); });
+    if (!readOnly){
+      sh.querySelectorAll("[data-ph]").forEach(btn=>btn.addEventListener("click", ()=>{ const p = btn.dataset.ph, cur = phasesOf(I()); setEditing({a:aid, imp:impId, field:"phases"}); set(["phases"], cur.includes(p) ? cur.filter(x=>x!==p) : PHASES.filter(x=>x===p||cur.includes(x))); paint(false); }));
+      sh.querySelectorAll("[data-cat]").forEach(btn=>btn.addEventListener("click", ()=>{ setEditing({a:aid, imp:impId, field:"category"}); set(["category"], btn.dataset.cat); paint(false); }));
+      Object.entries(textF).forEach(([key, sel])=>{ const el = $(sel); if (!el) return;
+        el.addEventListener("input", ()=>{ clearTimeout(timers[key]); timers[key] = setTimeout(()=>flush(key), 600); const ss = $("#save-state"); if (ss) ss.textContent = "Saving…"; if (key==="name") $("#imp-title").textContent = el.value || "Impact"; });
+        el.addEventListener("blur", ()=>{ if (timers[key]) flush(key); });
+        el.addEventListener("focus", ()=>setEditing({a:aid, imp:impId, field:key}));
+      });
+      if (createdHere) setTimeout(()=>{ const n = $("#i-name"); if (n){ n.focus(); n.select(); } }, 80);
+    }
     // evidence
-    const bindEv = ()=>{
+    function bindEv(){
       const inp = $("#ev-in");
       if (inp) inp.addEventListener("change", async ()=>{
-        const files = [...inp.files]; if(!files.length) return;
+        const files = [...inp.files]; if (!files.length) return;
         const add = $(".ev-add"); if (add) add.innerHTML = `<span class="spin"></span><span>Uploading…</span>`;
         for (const f of files){
           try {
-            let type = f.type; if (!type){ const ext=(f.name.split(".").pop()||"").toLowerCase(); type = {csv:"text/csv",txt:"text/plain",pdf:"application/pdf"}[ext]; }
+            let type = f.type; if (!type){ const ext = (f.name.split(".").pop()||"").toLowerCase(); type = {csv:"text/csv",txt:"text/plain",pdf:"application/pdf"}[ext]; }
             const r = await S.assets.upload(f, type ? {type} : undefined);
-            cur.evidence.push({id:r.id, name:f.name.slice(0,80), type:r.contentType});
+            touched = true; await live(A(), [{op:"ev_add", imp:impId, value:{id:r.id, name:f.name.slice(0,80), type:r.contentType}}]);
           } catch(e){ toast(e && e.code==="too_large" ? `${f.name} is over 20 MB` : e && e.code==="unsupported_type" ? `${f.name} isn't a supported file type` : e && e.code==="quota_exceeded" ? "File storage is full" : `Couldn't upload ${f.name}`); }
         }
-        $("#ev-box").innerHTML = evHTML(); bindEv();
-        if (cur.evidence.length) toast("Attached. Save the impact to keep it.");
+        const box = $("#ev-box"); if (box){ box.dataset.ids = ""; paint(false); }
       });
       sh.querySelectorAll("[data-evx]").forEach(b=>b.addEventListener("click", ()=>{
-        const ix = Number(b.dataset.evx); const e = cur.evidence[ix]; cur.evidence.splice(ix,1);
-        $("#ev-box").innerHTML = evHTML(); bindEv();
-        if (e && S.assets && !(imp && (imp.evidence||[]).some(x=>x.id===e.id))) S.assets.delete(e.id).catch(()=>{});
+        const id = b.dataset.evx; touched = true;
+        live(A(), [{op:"ev_del", imp:impId, id}]); if (S.assets) S.assets.delete(id).catch(()=>{}); paint(false);
       }));
-    };
-    bindEv();
-
+    }
+    bindEv(); $("#ev-box").dataset.ids = (i0.evidence||[]).map(e=>e.id).join(",");
     // AI
     const go = $("#ai-go");
     if (go) go.addEventListener("click", async ()=>{
-      cur.name = $("#i-name").value.trim(); cur.notes = $("#i-notes").value.trim(); cur.mitigation = $("#i-mit").value.trim();
-      if (!cur.name){ $("#i-name").focus(); toast("Describe the impact first, for example “dust from earthworks”"); return; }
+      Object.keys(timers).forEach(flush);
+      const i = I(); if (!i.name || i.name==="New impact"){ $("#i-name").focus(); toast("Describe the impact first, for example “dust from earthworks”"); return; }
       go.disabled = true; go.innerHTML = `<span class="spin"></span> Thinking…`;
       const out = $("#ai-out");
       try {
-        const r = await S.sample.json(aiPrompt(a, cur), {modelTier:"default"});
+        const r = await S.sample.json(aiPrompt(A(), I()), {modelTier:"default"});
         const now = validSel(r && r.current), aft = validSel(r && r.after);
         if (!now) throw {code:"bad_shape"};
-        cur.sel = now; if (aft) cur.rsel = aft;
-        if (r.mitigation && !cur.mitigation){ cur.mitigation = String(r.mitigation).slice(0,600); $("#i-mit").value = cur.mitigation; }
-        out.hidden = false; out.textContent = (r.rationale ? String(r.rationale).slice(0,400) + " " : "") + (r.mitigation && $("#i-mit").value!==String(r.mitigation).slice(0,600) ? "Suggested measures: " + String(r.mitigation).slice(0,400) : "");
-        out.textContent = out.textContent.trim() || "Scores applied.";
-        redrawCrit(); live(); toast("Suggestion applied. Review and adjust before saving.");
+        const ops = [{op:"imp_set", imp:impId, path:["sel"], value:now}];
+        if (aft) ops.push({op:"imp_set", imp:impId, path:["rsel"], value:aft});
+        const mit = r.mitigation ? String(r.mitigation).slice(0,600) : "";
+        if (mit && !I().mitigation) ops.push({op:"imp_set", imp:impId, path:["mitigation"], value:mit});
+        touched = true; live(A(), ops);
+        out.hidden = false; out.textContent = ((r.rationale ? String(r.rationale).slice(0,400) + " " : "") + (mit && I().mitigation!==mit ? "Suggested measures: " + mit.slice(0,400) : "")).trim() || "Scores applied.";
+        paint(true); toast("Suggestion applied. Review and adjust as needed.");
       } catch(e){
         out.hidden = false;
         out.textContent = e && e.code==="not_granted" ? "The AI assistant needs your permission. Allow it when asked, or keep scoring by hand." :
@@ -1551,26 +1799,15 @@ function impactSheet(a, imp, readOnly){
           "The suggestion didn't come back in a usable form. Try again, or add a short note about the source.";
       } finally { go.disabled = false; go.innerHTML = `${ICON.spark} Suggest again`; }
     });
-
-    $("#i-save").addEventListener("click", async ()=>{
-      cur.name = $("#i-name").value.trim(); cur.notes = $("#i-notes").value.trim(); cur.mitigation = $("#i-mit").value.trim();
-      if (!cur.name){ $("#i-name").focus(); $("#i-name").style.borderColor="var(--high)"; toast("Name the impact first"); return; }
-      if (!cur.phases.length){ $("#phases").scrollIntoView({block:"center", behavior:"smooth"}); toast("Pick at least one project phase"); return; }
-      const fresh = findA(a.owner, a.id) || a;
-      const next = strip(fresh);
-      next.impacts = isNew ? fresh.impacts.concat([cur]) : fresh.impacts.map(x=>x.id===cur.id?cur:x);
-      closeSheet();
-      const h = H(cur.sel);
-      const ok = await upsert(next, (isNew?"Added ":"Updated ") + cur.name + " (H " + h.toLocaleString() + (cur.rsel?" → "+H(cur.rsel).toLocaleString():"") + ")");
-      if (ok) toast((isNew?"Added ":"Saved ") + cur.name + " · " + BAND_NAME[band(h)]);
-    });
     const del = $("#i-del");
-    if (del) del.addEventListener("click", async ()=>{
-      if (!del.classList.contains("armed")){ del.classList.add("armed"); del.textContent="Tap again to remove"; setTimeout(()=>{ if(del.isConnected){ del.classList.remove("armed"); del.textContent="Remove"; } },3000); return; }
-      const fresh = findA(a.owner, a.id) || a;
-      const next = strip(fresh); next.impacts = fresh.impacts.filter(x=>x.id!==cur.id);
-      closeSheet(); const ok = await upsert(next, "Removed " + cur.name); if (ok) toast("Removed " + cur.name);
+    if (del) del.addEventListener("click", ()=>{
+      if (!del.classList.contains("armed")){ del.classList.add("armed"); del.textContent = "Tap again to remove"; setTimeout(()=>{ if (del.isConnected){ del.classList.remove("armed"); del.textContent = "Remove"; } }, 3000); return; }
+      const name = I().name; Object.keys(timers).forEach(k=>{ clearTimeout(timers[k]); delete timers[k]; });
+      S.sheetSync = null; setEditing(null); closeSheet();
+      live(A(), [{op:"imp_del", imp:impId}]).then(ok=>ok!==false && toast("Removed " + name));
     });
+    paint(true);
+    setEditing({a:aid, imp:impId, field:null});
   });
 }
 
@@ -1660,7 +1897,7 @@ document.addEventListener("click", e=>{
   if (t.dataset.open!=null){ S.phase=""; const [owner,id] = t.dataset.open.split("|"); S.view={name:"detail", owner, id}; window.scrollTo({top:0}); render(); return; }
   const a = S.view.name==="detail" ? findA(S.view.owner, S.view.id) : null;
   if (t.dataset.imp && a){ const imp = a.impacts.find(i=>i.id===t.dataset.imp); if (imp) impactSheet(a, imp, !canEditA(a)); return; }
-  if (t.dataset.status && a && canEditA(a)){ const st = t.dataset.status; if ((a.status||"draft")===st) return; upsert({...a, status:st}, "Status set to " + STATUS[st]).then(ok=>ok && toast("Marked " + STATUS[st])); return; }
+  if (t.dataset.status && a && canEditA(a)){ const st = t.dataset.status; if ((a.status||"draft")===st) return; live(a, [{op:"field", key:"status", value:st}]).then(ok=>ok && toast("Marked " + STATUS[st])); return; }
   const act = t.dataset.act;
   if (act==="home"){ S.view={name:"history"}; render(); }
   else if (act==="new") assessmentSheet(null);
@@ -1692,8 +1929,8 @@ document.addEventListener("change", e=>{
       inc.forEach(x=>{ const clean = {...x, impacts:x.impacts.map(i=>({...i, evidence:[]}))}; if (map.has(x.id)) { if ((x.updatedAt||0) >= (map.get(x.id).updatedAt||0)) { map.set(x.id, clean); updated++; } } else { map.set(x.id, clean); added++; } });
       saveMine([...map.values()]); toast(`Imported: ${added} new, ${updated} updated`);
     }).catch(()=>toast("That file isn't an assessment backup")); e.target.value=""; return; }
-  if (e.target.id==="cmp-a"){ S.cmp.a = e.target.value; if (S.cmp.b===S.cmp.a) S.cmp.b=""; render(); }
-  if (e.target.id==="cmp-b"){ S.cmp.b = e.target.value; if (S.cmp.b===S.cmp.a) S.cmp.a=""; render(); }
+  if (e.target.id==="cmp-a"){ S.cmp.a = e.target.value; if (S.cmp.b===S.cmp.a) S.cmp.b=""; saveSettings(); render(); }
+  if (e.target.id==="cmp-b"){ S.cmp.b = e.target.value; if (S.cmp.b===S.cmp.a) S.cmp.a=""; saveSettings(); render(); }
 });
 document.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.matches("tr.row")) e.target.click(); });
 $("#home-btn").addEventListener("click", ()=>{ S.view={name:"history"}; render(); });
@@ -1707,7 +1944,7 @@ async function loadAll(){
   ]);
   if (a.error){ toast("Couldn't load assessments: " + a.error.message); S.ready = true; render(); return; }
   const next = {};
-  (a.data||[]).forEach(r=>{ const d = r.doc; if (!d || !Array.isArray(d.impacts)) return; (next[r.owner] = next[r.owner] || {owner:r.owner, items:[]}).items.push({...d, id:r.id, _share:{access:r.access||"view", editors:r.editors||[], viewers:r.viewers||[]}}); });
+  (a.data||[]).forEach(r=>{ const d = r.doc && withPending(r.id, r.doc); if (!d || !Array.isArray(d.impacts)) return; (next[r.owner] = next[r.owner] || {owner:r.owner, items:[]}).items.push({...d, id:r.id, _share:{access:r.access||"view", editors:r.editors||[], viewers:r.viewers||[]}}); });
   S.docs = next;
   S.sbProfiles = Object.fromEntries((p.data||[]).map(x=>[x.id, {id:x.id, name:x.display_name||"", avatarUrl:""}]));
   S.ready = true; render();
@@ -1835,8 +2072,16 @@ async function afterSignIn(u){
   };
   $("#signout").hidden = false;
   S.view = {name:"history"};
+  await loadSettings();
   await loadAll();
-  if (!S.live){ S.live = S.sb.channel("eia-live").on("postgres_changes", {event:"*", schema:"public", table:"assessments"}, ()=>{ clearTimeout(S.rt); S.rt = setTimeout(loadAll, 400); }).subscribe(); }
+  if (!S.live){ S.live = S.sb.channel("eia-live").on("postgres_changes", {event:"*", schema:"public", table:"assessments"}, payload=>{
+      const n = payload && payload.new;
+      if (payload && payload.eventType==="UPDATE" && n && n.id && n.doc && itemRef(n.id)){
+        const r = itemRef(n.id); if (n.access) r.it._share = {access:n.access, editors:n.editors||[], viewers:n.viewers||[]};
+        serverDoc(n.id, n.doc); return; }
+      clearTimeout(S.rt); S.rt = setTimeout(loadAll, 400);
+    }).subscribe(); }
+  presenceStart();
 }
 $("#signout").addEventListener("click", accountSheet);
 
@@ -1863,7 +2108,7 @@ async function boot(){
   }
   if (!db || !S.meId){ S.offline = true; S.standalone = !window.claude; S.canWrite = true; S.ready = true;
     if (S.standalone){ try { const raw = localStorage.getItem("eia-data"); if (raw){ const d = JSON.parse(raw); if (Array.isArray(d.items)) local.items = d.items; } } catch(e){} }
-    render(); return; }
+    await loadSettings(); render(); return; }
   const cw = user ? await user.can("data.write") : null;
   S.canWrite = cw !== false || (user && await user.isOwner());
   db.collection("assessments").onSnapshot(snap=>{
