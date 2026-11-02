@@ -308,6 +308,44 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 .after-pill{font-family:var(--f-mono);font-size:13px;display:inline-flex;gap:6px;align-items:center}
 .needle.ghost{border-style:dashed;background:transparent;width:14px;height:14px}
 
+/* access and sharing */
+.access-box{display:grid;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);max-width:640px}
+.acc-row{display:flex;align-items:center;gap:10px;min-width:0}
+.acc-row div{display:grid;min-width:0}
+.acc-row b{font-size:14px}
+.acc-row span{font-size:12px;color:var(--muted)}
+.acc-dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:0}
+@media (max-width:520px){.acc-dl{grid-template-columns:1fr}}
+.acc-dl div{min-width:0}
+.acc-dl dt{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.acc-dl dd{margin:2px 0 0;font-size:14px;overflow-wrap:anywhere}
+.acc-you{margin:0;font-size:13px;padding:7px 10px;border-radius:9px;background:var(--surface-2)}
+.acc-creator{background:color-mix(in oklab,var(--accent) 25%,var(--surface))}
+.acc-editor{background:color-mix(in oklab,var(--med) 14%,var(--surface))}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700;flex:none;letter-spacing:.02em}
+.tag.can-edit{background:color-mix(in oklab,var(--med) 16%,transparent);color:var(--med)}
+.tag.acc{text-transform:none;letter-spacing:0;font-family:var(--f-body);font-weight:600}
+.who-bar{margin-bottom:14px}
+.sh-add{display:flex;gap:8px;flex-wrap:wrap}
+.sh-add input{flex:1 1 180px;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px}
+.sh-add select,.sh-person select,.sh-general select{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:9px 10px;font-size:13px}
+.sh-sug{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;display:grid}
+.sh-sug button{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0;background:none;text-align:left;font-weight:600}
+.sh-sug button:hover{background:var(--surface-2)}
+.sh-sug p{margin:0;padding:10px 12px;font-size:13px;color:var(--muted)}
+.sh-list{display:grid;gap:4px}
+.sh-person{display:flex;align-items:center;gap:10px;padding:6px 0;min-width:0}
+.sh-name{flex:1;min-width:0;font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.sh-name small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.sh-fixed{font-size:13px;color:var(--muted);padding-right:6px}
+.sh-general{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sh-general select{flex:1 1 160px;min-width:0}
+.field .sh-person select,.field .sh-add select{width:auto;flex:none}
+.field .sh-general select{width:auto;flex:1 1 160px}
+.field .sh-add input{width:auto}
+.acc-row .av{color:#fff;font-size:11px}
+.sh-gico{width:34px;height:34px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;flex:none}
+.sh-gico svg{width:16px;height:16px}
 /* analysis dashboard */
 .dash-filters .field{margin-bottom:12px}
 .cc-cfg{display:flex;flex-wrap:wrap;gap:10px}
@@ -473,6 +511,8 @@ const ICON = {
   hist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg>',
   dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   cmp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>',
+  people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg>',
+  globe:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
   pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
 };
 function toast(msg){ document.querySelectorAll(".toast").forEach(t=>t.remove()); const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
@@ -509,7 +549,16 @@ function allAssessments(){
 const keyOf = a => (a.owner||"") + "|" + a.id;
 function myItems(){ return S.offline ? (local.items||[]) : ((S.docs[S.meId]||{}).items || []); }
 function isMine(a){ return a.owner && (a.owner==="local" || a.owner===S.meId); }
-function canEditA(a){ return a.owner==="local" || (isMine(a) && S.canWrite); }
+const NO_SHARE = {access:"view", editors:[], viewers:[]};
+const shareOf = a => a._share || NO_SHARE;
+function canEditA(a){
+  if (a.owner==="local") return true;
+  if (!S.canWrite) return false;
+  if (isMine(a)) return true;
+  if (!S.sb || !S.shareReady) return false;
+  const sh = shareOf(a); return sh.access==="edit" || sh.editors.includes(S.meId);
+}
+function roleOf(a){ if (isMine(a)) return "creator"; return canEditA(a) ? "editor" : "viewer"; }
 function findA(owner, id){ return allAssessments().find(a=>a.owner===owner && a.id===id); }
 function findKey(k){ const [o,id] = k.split("|"); return findA(o, id); }
 
@@ -537,9 +586,9 @@ function summarize(a){
     scored:a.impacts.filter(i=>i.rsel).length, cut:pct(tot,rtot), evidence:a.impacts.reduce((n,i)=>n+(i.evidence||[]).length,0)};
 }
 function withHistory(a){ const x = {...a, updatedAt:Date.now()}; delete x.history; return x; }
-function strip(a){ const x={...a}; delete x.owner; return x; }
-function upsert(a, note){ const items = myItems().filter(x=>x.id!==a.id); items.push(withHistory(strip(a), note)); return saveMine(items); }
-function removeA(id){ return saveMine(myItems().filter(x=>x.id!==id)); }
+function strip(a){ const x={...a}; delete x.owner; delete x._share; return x; }
+function upsert(a, note){ if (S.sb) return sbUpsertOne(a); const items = myItems().filter(x=>x.id!==a.id); items.push(withHistory(strip(a), note)); return saveMine(items); }
+function removeA(id){ if (S.sb) return sbRemoveOne(id); return saveMine(myItems().filter(x=>x.id!==id)); }
 
 /* ---------- Rendering ---------- */
 let renderTok = 0;
@@ -597,19 +646,22 @@ function emptyStore(){
   return `<div class="empty"><h3>No assessments yet</h3><div>Tap Add to start one for your project, list the impacts you expect, and score each against criteria A–G.</div>${S.canWrite?`<button class="btn primary" data-act="new">${ICON.plus} Add assessment</button>`:""}</div>`;
 }
 function historyHTML(){
-  const q = norm(S.q); const all = allAssessments();
-  const list = all.filter(a => !q || norm([a.title,a.project,a.location,STATUS[a.status||"draft"],...a.impacts.map(i=>i.name)].join(" ")).includes(q));
+  const q = norm(S.q); const all = allAssessments(); const who = S.who || "all";
+  const sharedWithMe = a => !isMine(a) && (shareOf(a).editors.includes(S.meId) || shareOf(a).viewers.includes(S.meId));
+  const list = all.filter(a => who==="all" || (who==="mine" ? isMine(a) : sharedWithMe(a))).filter(a => !q || norm([a.title,a.project,a.location,STATUS[a.status||"draft"],...a.impacts.map(i=>i.name)].join(" ")).includes(q));
+  const whoBar = S.sb && all.length ? `<div class="seg who-bar" role="group" aria-label="Show">${[["all","All"],["mine","Created by me"],["shared","Shared with me"]].map(([k,l])=>`<button data-who="${k}" aria-pressed="${who===k}">${l}</button>`).join("")}</div>` : "";
   const body = !all.length ? emptyStore()
+    : !list.length && !q ? `<div class="empty"><h3>${who==="mine"?"You haven't created an assessment yet":"Nothing shared with you yet"}</h3><div>${who==="mine"?"Tap Add to start one.":"When a creator adds you to their assessment, it appears here."}</div></div>`
     : !list.length ? `<div class="empty"><h3>Nothing matches “${esc(S.q)}”</h3><div>Try a project name, location, status or impact.</div></div>`
     : `<div class="grid">${list.map(cardHTML).join("")}</div>`;
-  return body + guideHTML();
+  return whoBar + body + guideHTML();
 }
 function cardHTML(a, i){
   const s = summarize(a); const p = person(a.owner);
   return `<button class="card" style="--i:${i}" data-open="${esc(keyOf(a))}">
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
       <div style="min-width:0"><h3>${esc(a.title)}</h3><div class="sub">${esc([a.project,a.location].filter(Boolean).join(" · "))}</div></div>
-      <div style="display:grid;gap:4px;justify-items:end">${isMine(a)?'<span class="tag mine">Yours</span>':""}${statusHTML(a.status)}</div>
+      <div style="display:grid;gap:4px;justify-items:end">${isMine(a)?'<span class="tag mine">Yours</span>':S.sb&&canEditA(a)?'<span class="tag can-edit">Can edit</span>':""}${statusHTML(a.status)}${S.sb&&S.shareReady?accessTag(a):""}</div>
     </div>
     ${stripHTML(s.bands, s.n)}
     <div class="card-foot">
@@ -681,6 +733,109 @@ function evThumbs(i){
   return `<div class="ev-thumbs">${imgs.map(e=>`<img src="${esc(blobUrl(e.id))}" alt="${esc(e.name)}" loading="lazy">`).join("")}${rest>0?`<span class="tag">${ICON.clip.replace('<svg','<svg width="12" height="12"')} ${rest} file${rest>1?"s":""}</span>`:""}</div>`;
 }
 
+/* ---------- Access and sharing ---------- */
+function initials(n){ return (String(n||"?").trim().split(/\s+/).map(w=>w[0]).join("").slice(0,2) || "?").toUpperCase(); }
+function avatarHTML(id, name){ const pal = ["#6B7A12","#2F62C4","#C9762A","#7A4FB5","#1F8A93","#2F8A4E","#C2457D","#A88616"]; let h = 0; String(id).split("").forEach(c=>h=(h*31+c.charCodeAt(0))>>>0);
+  return `<span class="av" style="background:${pal[h%pal.length]}" aria-hidden="true">${esc(initials(name))}</span>`; }
+const nameOf = id => id===S.meId ? (((S.sbProfiles||{})[id]||{}).name || "You") : (((S.sbProfiles||{})[id]||{}).name || "Unknown user");
+function accessTag(a){ const sh = shareOf(a);
+  if (sh.access==="edit") return `<span class="tag acc">${ICON.globe} Everyone can edit</span>`;
+  if (sh.access==="private") return `<span class="tag acc">${ICON.lock} ${sh.editors.length+sh.viewers.length ? "Shared with "+(sh.editors.length+sh.viewers.length) : "Private"}</span>`;
+  return ""; }
+function accessHTML(a){
+  const sh = shareOf(a), role = roleOf(a);
+  const editors = sh.editors.filter(id=>id!==a.owner);
+  const canEdit = sh.access==="edit" ? "Everyone in the app" : editors.length ? "Creator + " + editors.map(nameOf).join(", ") : "Creator only";
+  const canView = sh.access==="private" ? (sh.viewers.length||editors.length ? "Only people added (" + (sh.viewers.length + editors.length) + ")" : "Only the creator") : "Everyone in the app";
+  const last = a.updatedBy && a.updatedBy!==a.owner ? ` · last edited by ${esc(nameOf(a.updatedBy))} ${ago(a.updatedAt)}` : "";
+  const you = {creator:"You created this. Only you can share or delete it.", editor:"You can edit this. Only the creator can share or delete it.", viewer:`View only. Ask ${esc(nameOf(a.owner))}, the creator, for edit access.`}[role];
+  return `<div class="access-box">
+    <div class="acc-row">${avatarHTML(a.owner, nameOf(a.owner))}<div><b>Created by ${esc(isMine(a)?"you":nameOf(a.owner))}</b><span>${a.createdAt?fmtDate(a.createdAt):""}${last}</span></div></div>
+    ${S.shareReady ? `<dl class="acc-dl"><div><dt>Can edit</dt><dd>${esc(canEdit)}</dd></div><div><dt>Can view</dt><dd>${esc(canView)}</dd></div></dl>` : ""}
+    <p class="acc-you acc-${role}">${you}</p>
+  </div>`;
+}
+function shareSheet(a){
+  const sh = shareOf(a);
+  const people = [...sh.editors.map(id=>({id, role:"edit"})), ...sh.viewers.filter(id=>!sh.editors.includes(id)).map(id=>({id, role:"view"}))].filter(p=>p.id!==a.owner);
+  let general = sh.access==="private" ? "restricted" : "everyone", generalRole = sh.access==="edit" ? "edit" : "view";
+  const draw = () => {
+    $("#sh-people").innerHTML = `<div class="sh-person">${avatarHTML(a.owner, nameOf(a.owner))}<div class="sh-name">${esc(nameOf(a.owner))}<small>You</small></div><span class="sh-fixed">Creator</span></div>`
+      + people.map((p,ix)=>`<div class="sh-person">${avatarHTML(p.id, nameOf(p.id))}<div class="sh-name">${esc(nameOf(p.id))}</div>
+          <select data-prole="${ix}" aria-label="Access for ${esc(nameOf(p.id))}"><option value="edit" ${p.role==="edit"?"selected":""}>Can edit</option><option value="view" ${p.role==="view"?"selected":""}>Can view</option><option value="remove">Remove</option></select></div>`).join("");
+    $("#sh-general-role").disabled = general==="restricted";
+    $("#sh-general-hint").textContent = general==="restricted" ? "Only you and the people above can open this assessment." : generalRole==="edit" ? "Anyone signed in to the app can open and edit this assessment." : "Anyone signed in to the app can open it. Only the people above can edit.";
+    $("#sh-ico").innerHTML = general==="restricted" ? ICON.lock : ICON.globe;
+    document.querySelectorAll("[data-prole]").forEach(sel=>sel.addEventListener("change", ()=>{ const ix = Number(sel.dataset.prole); if (sel.value==="remove") people.splice(ix,1); else people[ix].role = sel.value; draw(); }));
+  };
+  const suggest = () => {
+    const q = norm($("#sh-q").value), box = $("#sh-sug");
+    if (!q || q.includes("@")){ box.hidden = true; return; }
+    const taken = new Set([a.owner, ...people.map(p=>p.id)]);
+    const hits = Object.values(S.sbProfiles||{}).filter(p=>p.name && !taken.has(p.id) && norm(p.name).includes(q)).slice(0,6);
+    box.innerHTML = hits.length ? hits.map(h=>`<button type="button" data-pick="${esc(h.id)}">${avatarHTML(h.id, h.name)}<span>${esc(h.name)}</span></button>`).join("") : `<p>No one by that name. Try their email.</p>`;
+    box.hidden = false;
+    box.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click", ()=>{ addPerson(b.dataset.pick); }));
+  };
+  const err = m => { const e = $("#sh-err"); e.textContent = m||""; e.hidden = !m; };
+  const addPerson = id => {
+    if (id===a.owner){ err("That's the creator, who already has full access."); return; }
+    if (people.some(p=>p.id===id)){ err(nameOf(id) + " already has access."); return; }
+    people.push({id, role:$("#sh-role").value}); $("#sh-q").value = ""; $("#sh-sug").hidden = true; err(""); draw();
+  };
+  openSheet(`
+    <div class="sheet-h"><h3>Share “${esc(a.title)}”</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
+    <div class="sheet-b">
+      <div class="field"><span class="lbl">Add people</span>
+        <div class="sh-add"><input id="sh-q" placeholder="Name or email" autocomplete="off" aria-label="Name or email">
+          <select id="sh-role" aria-label="Access for new person"><option value="edit">Can edit</option><option value="view">Can view</option></select>
+          <button type="button" class="btn primary" id="sh-add">Add</button></div>
+        <div class="sh-sug" id="sh-sug" hidden></div>
+        <p class="lede" style="font-size:12px">People need an account in this app before you can add them.</p>
+        <p id="sh-err" class="lede" style="color:var(--high);font-size:13px" hidden></p>
+      </div>
+      <div class="field"><span class="lbl">People with access</span><div class="sh-list" id="sh-people"></div></div>
+      <div class="field"><span class="lbl">General access</span>
+        <div class="sh-general"><span class="sh-gico" id="sh-ico"></span>
+          <select id="sh-general" aria-label="General access"><option value="restricted" ${general==="restricted"?"selected":""}>Only people with access</option><option value="everyone" ${general==="everyone"?"selected":""}>Everyone in the app</option></select>
+          <select id="sh-general-role" aria-label="What everyone can do"><option value="view" ${generalRole==="view"?"selected":""}>Can view</option><option value="edit" ${generalRole==="edit"?"selected":""}>Can edit</option></select></div>
+        <p class="lede" style="font-size:13px" id="sh-general-hint"></p>
+      </div>
+    </div>
+    <div class="sheet-f"><div class="spacer"></div><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="sh-save">Save access</button></div>`,
+  sh2=>{
+    sh2.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", closeSheet));
+    $("#sh-q").addEventListener("input", suggest);
+    $("#sh-q").addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); $("#sh-add").click(); } });
+    $("#sh-general").addEventListener("change", e=>{ general = e.target.value; draw(); });
+    $("#sh-general-role").addEventListener("change", e=>{ generalRole = e.target.value; draw(); });
+    $("#sh-add").addEventListener("click", async ()=>{
+      const v = $("#sh-q").value.trim(); if (!v){ err("Type a name or an email."); return; }
+      if (v.includes("@")){
+        const b = $("#sh-add"); b.disabled = true;
+        const {data, error} = await S.sb.rpc("find_user_by_email", {p_email:v}); b.disabled = false;
+        if (error){ err("Couldn't look up that email: " + error.message); return; }
+        if (!data || !data.length){ err("No account uses that email. Ask them to create an account first."); return; }
+        if (!S.sbProfiles[data[0].id]) S.sbProfiles[data[0].id] = {id:data[0].id, name:data[0].display_name||v, avatarUrl:""};
+        addPerson(data[0].id); return;
+      }
+      const q = norm(v), hits = Object.values(S.sbProfiles||{}).filter(p=>p.name && norm(p.name)===q);
+      if (hits.length===1) addPerson(hits[0].id); else if (hits.length>1) err("More than one person has that name. Add them by email."); else err("Pick a person from the list, or type their email.");
+    });
+    $("#sh-save").addEventListener("click", async ()=>{
+      const b = $("#sh-save"); b.disabled = true;
+      const access = general==="restricted" ? "private" : generalRole==="edit" ? "edit" : "view";
+      const editors = people.filter(p=>p.role==="edit").map(p=>p.id), viewers = people.filter(p=>p.role==="view").map(p=>p.id);
+      const {error} = await S.sb.rpc("set_assessment_sharing", {p_id:a.id, p_access:access, p_editors:editors, p_viewers:viewers});
+      b.disabled = false;
+      if (error){ err("Couldn't save: " + error.message); return; }
+      const item = (S.docs[a.owner]||{items:[]}).items.find(x=>x.id===a.id); if (item) item._share = {access, editors, viewers};
+      closeSheet(); render(); toast("Access updated");
+    });
+    draw();
+  });
+}
+
 /* ---------- Detail ---------- */
 function detailHTML(full){
   const mine = canEditA(full);
@@ -694,14 +849,18 @@ function detailHTML(full){
     ${imps.map(i=>{ const h=H(i.sel), r=i.rsel?H(i.rsel):null; return `<tr class="row" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}<small>${esc([i.category, phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${CRITERIA.map(c=>{ const v=scoreOf(c.k,i.sel[c.k]); const pr=(v-1)/Math.max(1,maxOf(c.k)-1); return `<td class="heat" style="--p:${pr.toFixed(2)}">${v}</td>`;}).join("")}<td class="h ${band(h)}">${h.toLocaleString()}</td><td class="${r==null?"":"h "+band(r)}">${r==null?"—":r.toLocaleString()}</td></tr>`;}).join("")}
   </tbody></table></div>` : `${ph && full.impacts.length ? `<div class="empty"><h3>No impacts in ${esc(ph)}</h3><div>None of this assessment's impacts are marked for the ${esc(ph.toLowerCase())} phase.</div></div>` : ""}${ph && full.impacts.length ? "" : `<div class="empty"><h3>No impacts yet</h3><div>${mine?"Add the first impact this project could cause, such as an emission, a discharge or a social effect.":"The author hasn't added impacts yet."}</div>${mine?`<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button>`:""}</div>`}`;
   const st = a.status||"draft";
-  const actions = mine
-    ? `<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button><button class="btn" data-act="edit-a">${ICON.edit} Edit details</button><button class="btn danger" data-act="del-a">Delete</button>`
-    : `<span class="tag">${ICON.lock} Read only · only the author can edit</span>${S.canWrite?`<button class="btn" data-act="copy">${ICON.copy} Copy to mine</button>`:""}`;
+  const creator = isMine(full);
+  const actions = (mine
+    ? `<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button><button class="btn" data-act="edit-a">${ICON.edit} Edit details</button>`
+    : `<span class="tag">${ICON.lock} View only</span>${S.canWrite?`<button class="btn" data-act="copy">${ICON.copy} Copy to mine</button>`:""}`)
+    + (creator && S.sb && S.shareReady ? `<button class="btn" data-act="share">${ICON.people} Share</button>` : "")
+    + (creator ? `<button class="btn danger" data-act="del-a">Delete</button>` : "");
   return `
   <button class="back" data-act="home">${ICON.back} History</button>
   <section class="d-head" id="d-head">
     <div class="meta"><span class="who">${p.avatar?`<img src="${esc(p.avatar)}" alt="">`:""}<span>${esc(p.name)}</span></span>${statusHTML(st)}${a.location?`<span>${esc(a.location)}</span>`:""}<span>Updated ${ago(a.updatedAt)}</span></div>
     <h2>${esc(a.title)}</h2>
+    ${S.sb ? accessHTML(full) : ""}
     ${a.project?`<div class="eyebrow">${esc(a.project)}</div>`:""}
     ${a.description?`<p class="desc">${esc(a.description)}</p>`:""}
     ${mine?`<div class="status-pick" role="group" aria-label="Review status">${Object.entries(STATUS).map(([k,v])=>`<button data-status="${k}" aria-pressed="${st===k}">${v}</button>`).join("")}</div>`:""}
@@ -1493,10 +1652,11 @@ async function exportPDF(a, btn){
 
 /* ---------- Events ---------- */
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-act],[data-open],[data-tab],[data-imp],[data-status],[data-phase]");
+  const t = e.target.closest("[data-act],[data-open],[data-tab],[data-imp],[data-status],[data-phase],[data-who]");
   if (!t || t.closest("#layer")) return;
   if (t.dataset.tab){ S.view = {name:t.dataset.tab}; render(); return; }
   if (t.dataset.phase!=null){ S.phase = t.dataset.phase; render(); return; }
+  if (t.dataset.who){ S.who = t.dataset.who; render(); return; }
   if (t.dataset.open!=null){ S.phase=""; const [owner,id] = t.dataset.open.split("|"); S.view={name:"detail", owner, id}; window.scrollTo({top:0}); render(); return; }
   const a = S.view.name==="detail" ? findA(S.view.owner, S.view.id) : null;
   if (t.dataset.imp && a){ const imp = a.impacts.find(i=>i.id===t.dataset.imp); if (imp) impactSheet(a, imp, !canEditA(a)); return; }
@@ -1510,6 +1670,7 @@ document.addEventListener("click", e=>{
   else if (act==="csv" && a) exportCSV(a);
   else if (act==="pdf" && a) exportPDF(a, t);
   else if (act==="comment" && S.comments){ const el = $("#d-head"); S.comments.openComposer({element: el}).then(r=>{ if (r && r.opened===false) toast("Tap inside the app first, then try Comment again"); }).catch(()=>toast("Comments aren't available in this view")); }
+  else if (act==="share" && a && isMine(a)) shareSheet(a);
   else if (act==="analyse-this" && a){ Object.assign(S.dash, {projects:[keyOf(a)], phase:"", category:"", status:""}); S.view={name:"dashboard"}; window.scrollTo({top:0}); render(); }
   else if (act==="compare-this" && a){ S.cmp.a = keyOf(a); S.cmp.b = ""; S.view={name:"compare"}; window.scrollTo({top:0}); render(); }
   else if (act==="copy" && a){
@@ -1540,15 +1701,41 @@ $("#home-btn").addEventListener("click", ()=>{ S.view={name:"history"}; render()
 /* ---------- Supabase ---------- */
 async function loadAll(){
   const [a, p] = await Promise.all([
-    S.sb.from("assessments").select("id,owner,doc,updated_at").order("updated_at",{ascending:false}).limit(1000),
+    S.sb.from("assessments").select("id,owner,doc,updated_at,access,editors,viewers").order("updated_at",{ascending:false}).limit(1000)
+      .then(r => r.error && /access|editors|viewers|column/i.test(r.error.message) ? (S.shareReady = false, S.sb.from("assessments").select("id,owner,doc,updated_at").order("updated_at",{ascending:false}).limit(1000)) : (r.error || (S.shareReady = true), r)),
     S.sb.from("profiles").select("id,display_name").limit(1000)
   ]);
   if (a.error){ toast("Couldn't load assessments: " + a.error.message); S.ready = true; render(); return; }
   const next = {};
-  (a.data||[]).forEach(r=>{ const d = r.doc; if (!d || !Array.isArray(d.impacts)) return; (next[r.owner] = next[r.owner] || {owner:r.owner, items:[]}).items.push({...d, id:r.id}); });
+  (a.data||[]).forEach(r=>{ const d = r.doc; if (!d || !Array.isArray(d.impacts)) return; (next[r.owner] = next[r.owner] || {owner:r.owner, items:[]}).items.push({...d, id:r.id, _share:{access:r.access||"view", editors:r.editors||[], viewers:r.viewers||[]}}); });
   S.docs = next;
   S.sbProfiles = Object.fromEntries((p.data||[]).map(x=>[x.id, {id:x.id, name:x.display_name||"", avatarUrl:""}]));
   S.ready = true; render();
+}
+function sbUpsertOne(a){
+  const found = allAssessments().find(x=>x.id===a.id);
+  const owner = found ? found.owner : S.meId, share = found ? shareOf(found) : NO_SHARE;
+  const doc = withHistory(strip(a)); doc.updatedBy = S.meId;
+  const bucket = S.docs[owner] || (S.docs[owner] = {owner, items:[]});
+  bucket.items = bucket.items.filter(x=>x.id!==doc.id).concat([{...doc, _share:share}]);
+  render();
+  writeChain = writeChain.then(async ()=>{
+    const row = {doc, updated_at:new Date(doc.updatedAt).toISOString()};
+    const q = found ? S.sb.from("assessments").update(row).eq("id", doc.id) : S.sb.from("assessments").insert({id:doc.id, owner:S.meId, ...row});
+    const {data, error} = await q.select("id");
+    if (error) throw error;
+    if (!data || !data.length) throw {message:"you no longer have edit access to this assessment"};
+    return true;
+  }).catch(e=>{ toast("Couldn't save: " + ((e && e.message) || "check your connection")); loadAll(); return false; });
+  return writeChain;
+}
+function sbRemoveOne(id){
+  Object.values(S.docs).forEach(b=>{ b.items = b.items.filter(x=>x.id!==id); }); render();
+  writeChain = writeChain.then(async ()=>{
+    const {data, error} = await S.sb.from("assessments").delete().eq("id", id).select("id");
+    if (error) throw error; if (!data || !data.length) throw {message:"only the creator can delete this assessment"}; return true;
+  }).catch(e=>{ toast("Couldn't delete: " + ((e && e.message) || "check your connection")); loadAll(); return false; });
+  return writeChain;
 }
 function sbSave(items){
   const prev = myItems();

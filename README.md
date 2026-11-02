@@ -58,12 +58,30 @@ The full option list for each criterion is in the app under **Scoring guide**.
 
 The publishable key is safe in a public page: the row-level security rules in `supabase-setup.sql` decide who can read and change data.
 
-## Access rules
+## Access and sharing
 
-- Signed-in users can read every assessment and everyone's display name.
-- Users can only create, edit and delete their own assessments.
-- Evidence files upload into a folder named after the uploader, and only the uploader can delete them. The evidence bucket is public, so anyone with a file's link can open it.
-- To close registration once your team has joined, see **Managing users** below.
+Sharing works like Canva. Each assessment shows who created it, who can edit it and who can view it.
+
+| Role | Can view | Can edit content | Can share | Can delete |
+|---|---|---|---|---|
+| Creator | Yes | Yes | Yes | Yes |
+| Editor (added with "Can edit") | Yes | Yes | No | No |
+| Viewer (added with "Can view") | Yes | No | No | No |
+| Everyone else | Depends on general access | Only if general access is "Can edit" | No | No |
+
+The creator opens **Share** on the assessment to:
+
+- add people by name or email, as **Can edit** or **Can view** (they need an account first)
+- change or remove someone's access
+- set **general access**: *Only people with access* (private), *Everyone in the app · Can view* (the default), or *Everyone in the app · Can edit*
+
+These rules are enforced by the database, not just the screen. Editors can change an assessment's content but not its owner or sharing; only the creator can change sharing (through the `set_assessment_sharing` function) or delete it. People can be found by exact email through `find_user_by_email`, which returns only a name and id.
+
+History has filters for **All**, **Created by me** and **Shared with me**.
+
+Evidence files are stored in a public folder, so anyone with a file's direct link can open it, even if the assessment is private.
+
+**Updating an existing project:** run `supabase-setup.sql` again in the SQL Editor. It is safe to re-run and adds the sharing columns, rules and functions. Existing assessments start as *Everyone in the app · Can view*, editable only by their creator.
 
 ## Managing users
 
