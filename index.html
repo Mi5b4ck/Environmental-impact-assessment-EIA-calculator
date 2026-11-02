@@ -167,13 +167,6 @@ td.h.high{background:color-mix(in oklab,var(--high) 24%,transparent);color:var(-
 .imp p{grid-column:1/-1;margin:0;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 .imp p strong{color:var(--fg);font-weight:600}
 
-.timeline{list-style:none;margin:0;padding:0;display:grid;gap:0}
-.timeline li{display:grid;grid-template-columns:14px 1fr;gap:12px;padding-bottom:14px;position:relative}
-.timeline li::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:6px;box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 30%,transparent)}
-.timeline li::after{content:"";position:absolute;left:4.5px;top:20px;bottom:0;width:1px;background:var(--line)}
-.timeline li:last-child::after{display:none}
-.timeline .t{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
-.timeline .w{font-size:14px;overflow-wrap:anywhere}
 
 details.guide summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
 details.guide summary::-webkit-details-marker{display:none}
@@ -315,6 +308,45 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 .after-pill{font-family:var(--f-mono);font-size:13px;display:inline-flex;gap:6px;align-items:center}
 .needle.ghost{border-style:dashed;background:transparent;width:14px;height:14px}
 
+/* analysis dashboard */
+.dash-filters .field{margin-bottom:12px}
+.cc-cfg{display:flex;flex-wrap:wrap;gap:10px}
+.cc-cfg label{display:grid;gap:4px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);flex:1 1 150px;min-width:0}
+.cc-cfg select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:500;letter-spacing:0;text-transform:none}
+.cc-cfg select:disabled{opacity:.55}
+.dash-kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.dash-kpis .val small{font-size:14px;color:var(--muted);font-weight:500}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.findings{margin:0;padding-left:18px;display:grid;gap:8px;font-size:14px;line-height:1.5}
+.findings li::marker{color:var(--accent-text)}
+.findings b{font-weight:700}
+.t-high{color:var(--high)}
+.dash-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:22px 0 12px}
+.dash-bar h3{font-family:var(--f-display);font-size:22px;margin:0}
+.dash-bar-act{display:flex;gap:8px;flex-wrap:wrap}
+.add-chart{display:inline-flex;align-items:center;gap:6px;height:42px;padding:0 6px 0 12px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700}
+.add-chart svg{width:16px;height:16px;flex:none}
+.add-chart select{border:0;background:transparent;color:inherit;font-weight:700;font-size:14px;max-width:200px;outline:none;cursor:pointer}
+.add-chart select option{color:var(--fg);background:var(--surface)}
+.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.chart-grid{grid-template-columns:1fr}}
+.chart-card{margin:0;display:grid;gap:12px;animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+.cc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cc-title{flex:1 1 180px;min-width:0;border:1px solid transparent;background:none;font-family:var(--f-display);font-weight:700;font-size:18px;padding:4px 6px;margin-left:-6px;border-radius:8px;color:var(--fg)}
+.cc-title:hover,.cc-title:focus{border-color:var(--line);outline:none;background:var(--surface-2)}
+.cc-act{display:flex;gap:4px;flex-wrap:wrap}
+.mini{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 9px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font-size:12px;font-weight:700;color:var(--fg)}
+.mini svg{width:13px;height:13px}
+.mini:hover{background:var(--surface-2)}
+.mini[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.mini.armed{background:var(--high);color:var(--surface);border-color:transparent}
+.cc-canvas{position:relative;height:320px;min-width:0}
+.cc-canvas.tall{height:360px}
+.cc-canvas canvas{max-width:100%}
+.cc-empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);margin:0}
+.cc-note{margin:0;font-size:13px;color:var(--muted);min-height:1em}
+.cc-table table{min-width:0}
+.cc-table td,.cc-table th{font-size:12px;padding:6px}
 /* phases */
 .phase-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:14px}
 .phase-bar .lbl{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
@@ -349,11 +381,6 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 .diff.up{color:var(--high);background:color-mix(in oklab,var(--high) 14%,transparent)}
 .diff.down{color:var(--low);background:color-mix(in oklab,var(--low) 14%,transparent)}
 .diff.eq{color:var(--muted);background:var(--surface-2)}
-.spark{width:100%;height:70px;display:block}
-.spark text{font-family:var(--f-mono);font-size:10px;fill:var(--muted)}
-.chart .trend{fill:none;stroke:var(--accent-text);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:2000;stroke-dashoffset:2000;animation:draw 1.4s ease-out forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
-@media (prefers-reduced-motion:reduce){.chart .trend{stroke-dashoffset:0}}
 </style>
 
 </head>
@@ -381,6 +408,7 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 </main>
 <div id="layer"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0/dist/umd/supabase.js"></script>
 <script>
 /* ===== Paste your Supabase project details here (Settings → API Keys / Data API) ===== */
@@ -462,7 +490,7 @@ const logPos = h => Math.log10(Math.max(1,h)) / Math.log10(MAXH) * 100;
 function currentTheme(){ const a=document.documentElement.getAttribute("data-theme"); if(a) return a; return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
 function paintThemeBtn(){ const b=$("#theme-btn"); const d=currentTheme()==="dark"; b.innerHTML = d ? ICON.sun : ICON.moon; b.setAttribute("aria-label", d ? "Switch to light mode" : "Switch to dark mode"); b.title = b.getAttribute("aria-label"); }
 try { const saved = localStorage.getItem("eia-theme"); if (saved==="dark"||saved==="light") document.documentElement.setAttribute("data-theme", saved); } catch(e){}
-$("#theme-btn").addEventListener("click", ()=>{ const next = currentTheme()==="dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", next); try{ localStorage.setItem("eia-theme", next);}catch(e){} paintThemeBtn(); });
+$("#theme-btn").addEventListener("click", ()=>{ const next = currentTheme()==="dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", next); try{ localStorage.setItem("eia-theme", next);}catch(e){} paintThemeBtn(); setTimeout(()=>redrawCharts(), 50); });
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", paintThemeBtn);
 paintThemeBtn();
 
@@ -508,7 +536,7 @@ function summarize(a){
   return {n:hs.length, peak:hs.length?Math.max(...hs):0, rpeak:rs.length?Math.max(...rs):0, bands:b, rbands:rb,
     scored:a.impacts.filter(i=>i.rsel).length, cut:pct(tot,rtot), evidence:a.impacts.reduce((n,i)=>n+(i.evidence||[]).length,0)};
 }
-function withHistory(a, note){ const s=summarize(a); const h=(a.history||[]).slice(-39); h.push({at:Date.now(), note, n:s.n, peak:s.peak, high:s.bands.high, rpeak:s.rpeak}); return {...a, history:h, updatedAt:Date.now()}; }
+function withHistory(a){ const x = {...a, updatedAt:Date.now()}; delete x.history; return x; }
 function strip(a){ const x={...a}; delete x.owner; return x; }
 function upsert(a, note){ const items = myItems().filter(x=>x.id!==a.id); items.push(withHistory(strip(a), note)); return saveMine(items); }
 function removeA(id){ return saveMine(myItems().filter(x=>x.id!==id)); }
@@ -521,9 +549,10 @@ async function render(){
   if (S.user && ids.length){ try { S.profiles = await S.user.profiles(ids); } catch(e){} }
   if (tok !== renderTok) return;
   const app = $("#app"), v = S.view.name;
+  destroyCharts();
   if (S.needAuth){ app.innerHTML = heroHTML() + authHTML(); bindAuth(); return; }
   if (v === "detail"){ const a = findA(S.view.owner, S.view.id); if (a){ app.innerHTML = detailHTML(a); afterCounts(); return; } S.view={name:"history"}; }
-  if (v === "dashboard"){ app.innerHTML = heroHTML() + navHTML("dashboard") + dashboardHTML(); afterCounts(); return; }
+  if (v === "dashboard"){ app.innerHTML = heroHTML() + navHTML("dashboard") + dashboardHTML(); afterDashboard(); return; }
   if (v === "compare"){ app.innerHTML = heroHTML() + navHTML("compare") + compareHTML(); afterCounts(); return; }
   app.innerHTML = heroHTML() + navHTML("history") + historyHTML(); afterHistory();
 }
@@ -645,20 +674,6 @@ function heatmapHTML(imps){
   return `<div class="hm"><div class="hm-y">D · Scale / Severity</div><div><div class="hm-grid">${g}</div><div class="hm-x">A · Quantity / Magnitude</div></div></div>
     <div class="hm-key">${ranked.map(i=>`<span><span class="dot ${band(H(i.sel))}">${rank.get(i.id)}</span>${esc(i.name)}</span>`).join("")}</div>`;
 }
-function sparkHTML(hist){
-  if (hist.length < 2) return "";
-  const W=600, Hh=70, p=8, n=hist.length;
-  const ys = hist.map(h=>Math.max(1,h.peak));
-  const lo = Math.log10(Math.min(...ys)), hi = Math.max(lo+1, Math.log10(Math.max(...ys)));
-  const X = k => p + k*(W-2*p)/(n-1), Y = v => Hh-14 - (Math.log10(v)-lo)/(hi-lo)*(Hh-28);
-  const d = ys.map((v,k)=>(k?"L":"M")+X(k).toFixed(1)+","+Y(v).toFixed(1)).join(" ");
-  return `<svg class="spark chart" viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" role="img" aria-label="Peak H over time">
-    <path d="${d} L${X(n-1)},${Hh-14} L${X(0)},${Hh-14} Z" fill="color-mix(in oklab,var(--accent) 22%,transparent)"/>
-    <path class="trend" d="${d}"/>
-    <circle cx="${X(n-1)}" cy="${Y(ys[n-1])}" r="4" fill="var(--accent-text)"/>
-    <text x="${p}" y="${Hh-2}">${fmtShort(hist[0].at)}</text><text x="${W-p}" y="${Hh-2}" text-anchor="end">${fmtShort(hist[n-1].at)} · peak ${ys[n-1].toLocaleString()}</text>
-  </svg>`;
-}
 function evThumbs(i){
   const ev = i.evidence||[]; if(!ev.length) return "";
   const imgs = ev.filter(e=>/^image\//.test(e.type)).slice(0,4);
@@ -682,7 +697,6 @@ function detailHTML(full){
   const actions = mine
     ? `<button class="btn primary" data-act="add-imp">${ICON.plus} Add impact</button><button class="btn" data-act="edit-a">${ICON.edit} Edit details</button><button class="btn danger" data-act="del-a">Delete</button>`
     : `<span class="tag">${ICON.lock} Read only · only the author can edit</span>${S.canWrite?`<button class="btn" data-act="copy">${ICON.copy} Copy to mine</button>`:""}`;
-  const hist = (full.history||[]);
   return `
   <button class="back" data-act="home">${ICON.back} History</button>
   <section class="d-head" id="d-head">
@@ -691,7 +705,7 @@ function detailHTML(full){
     ${a.project?`<div class="eyebrow">${esc(a.project)}</div>`:""}
     ${a.description?`<p class="desc">${esc(a.description)}</p>`:""}
     ${mine?`<div class="status-pick" role="group" aria-label="Review status">${Object.entries(STATUS).map(([k,v])=>`<button data-status="${k}" aria-pressed="${st===k}">${v}</button>`).join("")}</div>`:""}
-    <div class="d-actions">${actions}${s.n?`<button class="btn ghost" data-act="pdf">${ICON.pdf} PDF report</button><button class="btn ghost" data-act="csv">${ICON.dl} CSV</button>`:""}${S.comments?`<button class="btn ghost" data-act="comment">${ICON.msg} Comment</button>`:""}<button class="btn ghost" data-act="compare-this">${ICON.cmp} Compare</button></div>
+    <div class="d-actions">${actions}${s.n?`<button class="btn ghost" data-act="pdf">${ICON.pdf} PDF report</button><button class="btn ghost" data-act="csv">${ICON.dl} CSV</button>`:""}${S.comments?`<button class="btn ghost" data-act="comment">${ICON.msg} Comment</button>`:""}<button class="btn ghost" data-act="compare-this">${ICON.cmp} Compare</button><button class="btn ghost" data-act="analyse-this">${ICON.dash} Analyse</button></div>
   </section>
   ${phaseBar}
   <div class="kpis">
@@ -707,78 +721,458 @@ function detailHTML(full){
   </div>`:""}
   <div class="panel"><div class="panel-h"><h3>Evaluation matrix</h3>${s.n?`<span class="hint">${mine?"Tap a row to edit":"Tap a row for details"}</span>`:""}</div>${table}</div>
   ${s.n?`<div class="panel"><div class="panel-h"><h3>Control & mitigation</h3><span class="hint">Highest risk first${s.evidence?` · ${s.evidence} evidence file${s.evidence>1?"s":""}`:""}</span></div><div class="imp-list">${imps.map(i=>{const h=H(i.sel), r=i.rsel?H(i.rsel):null;return `<button class="imp" data-imp="${esc(i.id)}"><b>${esc(i.name)}</b><span class="chip ${band(h)}">${BAND_NAME[band(h)]} · ${h.toLocaleString()}${r!=null?` → ${r.toLocaleString()}`:""}</span>${phasesOf(i).length?`<span class="phase-row">${phaseTags(i)}</span>`:""}${i.notes?`<p>${esc(i.notes)}</p>`:""}<p>${i.mitigation?`<strong>Measures:</strong> ${esc(i.mitigation)}`:(band(h)==="high"?`<strong style="color:var(--high)">No measures recorded yet.</strong> High impacts need control or mitigation.`:"No measures recorded.")}</p>${evThumbs(i)}</button>`;}).join("")}</div></div>`:""}
-  ${hist.length?`<div class="panel"><div class="panel-h"><h3>Change history</h3><span class="hint">${hist.length} update${hist.length>1?"s":""}</span></div>${sparkHTML(hist)}<ul class="timeline" style="margin-top:12px">${hist.slice().reverse().map(h=>`<li><span></span><div><div class="t">${fmtTime(h.at)}</div><div class="w">${esc(h.note)} <span style="color:var(--muted)">· ${h.n} impact${h.n===1?"":"s"}, peak H ${Number(h.peak).toLocaleString()}</span></div></div></li>`).join("")}</ul></div>`:""}
   ${guideHTML()}`;
 }
 
-/* ---------- Dashboard ---------- */
+/* ---------- Analysis dashboard ---------- */
+const DASH_KEY = "eia-dashboard-v1";
+const avg = v => { v = v.filter(x=>x!=null && !isNaN(x)); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; };
+const med = v => { v = v.filter(x=>x!=null && !isNaN(x)).sort((a,b)=>a-b); if(!v.length) return null; const m=Math.floor(v.length/2); return v.length%2 ? v[m] : (v[m-1]+v[m])/2; };
+const tot = v => v.reduce((a,b)=>a+(b||0),0);
+const CMAX = Object.fromEntries(CRITERIA.map(c=>[c.k, Math.max(...c.opts.map(o=>o[1]))]));
+
+const MEASURES = {
+  count:   {label:"Number of impacts", f:rs=>rs.length, int:true},
+  pctHigh: {label:"% high-significance impacts", f:rs=>rs.length ? 100*rs.filter(r=>r.band==="high").length/rs.length : null, pct:true},
+  meanH:   {label:"Mean H", f:rs=>avg(rs.map(r=>r.H)), hscale:true},
+  medianH: {label:"Median H", f:rs=>med(rs.map(r=>r.H)), hscale:true},
+  maxH:    {label:"Peak H", f:rs=>rs.length ? Math.max(...rs.map(r=>r.H)) : null, hscale:true},
+  sumH:    {label:"Total H (cumulative significance)", f:rs=>tot(rs.map(r=>r.H))},
+  meanHr:  {label:"Mean H after mitigation", f:rs=>avg(rs.map(r=>r.Hr)), hscale:true},
+  reduction:{label:"Risk reduction by measures (%)", f:rs=>{ const s=rs.filter(r=>r.scored); const a=tot(s.map(r=>r.H)); return a ? 100*(1-tot(s.map(r=>r.Hr))/a) : null; }, pct:true},
+  gap:     {label:"High impacts without measures", f:rs=>rs.filter(r=>r.band==="high" && !r.hasMit).length, int:true},
+  noncomp: {label:"Impacts not meeting legislation (E = 2)", f:rs=>rs.filter(r=>r.legal).length, int:true},
+};
+CRITERIA.forEach(c=>{ MEASURES["c"+c.k] = {label:`Mean score ${c.k} · ${c.name} (max ${CMAX[c.k]})`, f:rs=>avg(rs.map(r=>r.s[c.k]))}; });
+
+const BAND_ORDER = ["high","med","low"];
+const GROUPS = {
+  project:  {label:"Project", keys:r=>[r.pkey], name:k=>DX.pname[k]||k},
+  impact:   {label:"Impact (matched by name)", keys:r=>[r.ikey], name:k=>DX.iname[k]||k},
+  category: {label:"Category", keys:r=>[r.category]},
+  phase:    {label:"Project phase", keys:r=>r.phases.length?r.phases:["Not set"], order:[...PHASES,"Not set"]},
+  band:     {label:"Significance band", keys:r=>[r.band], order:BAND_ORDER, name:k=>BAND_NAME[k]},
+  status:   {label:"Review status", keys:r=>[r.status], order:Object.keys(STATUS), name:k=>STATUS[k]},
+  author:   {label:"Author", keys:r=>[r.author]},
+  criteria: {label:"Criteria A–G (profile)"},
+};
+const SPLITS = {
+  none:"No split", project:"Project", phase:"Project phase", category:"Category", band:"Significance band", status:"Review status", mitigation:"Current vs after mitigation"
+};
+const TYPES = {
+  bar:"Bar", hbar:"Horizontal bar", stacked:"Stacked bar", stacked100:"100% stacked bar", line:"Line", area:"Area",
+  radar:"Radar", pie:"Pie", doughnut:"Doughnut", polar:"Polar area", pareto:"Pareto (bars + cumulative %)", heatmap:"Heatmap matrix", scatter:"Scatter (impact by impact)"
+};
+const SVARS = { H:"H (current)", Hr:"H′ (after mitigation)", ...Object.fromEntries(CRITERIA.map(c=>[c.k, `${c.k} · ${c.name}`])) };
+const PRESETS = [
+  {title:"Risk profile by project", type:"stacked", measure:"count", group:"project", split:"band", scale:"linear", top:12},
+  {title:"Criteria fingerprint", type:"radar", measure:"count", group:"criteria", split:"project", scale:"linear", top:8},
+  {title:"Hotspots: phase × category", type:"heatmap", measure:"meanH", group:"category", split:"phase", scale:"linear", top:12},
+  {title:"Mitigation effectiveness", type:"bar", measure:"meanH", group:"project", split:"mitigation", scale:"log", top:12},
+  {title:"Pareto of impacts", type:"pareto", measure:"sumH", group:"impact", split:"none", scale:"linear", top:15},
+  {title:"Current vs residual significance", type:"scatter", x:"H", y:"Hr", split:"band", scale:"log", top:12},
+  {title:"High-risk share by phase", type:"bar", measure:"pctHigh", group:"phase", split:"none", scale:"linear", top:12},
+  {title:"Compliance and control gaps", type:"bar", measure:"gap", group:"project", split:"none", scale:"linear", top:12},
+];
+const DX = {pname:{}, iname:{}};
+S.dash = (()=>{ let d=null; try { d = JSON.parse(localStorage.getItem(DASH_KEY)||"null"); } catch(e){}
+  const base = {projects:[], phase:"", category:"", status:"", charts:[0,1,2,3].map(i=>({...PRESETS[i], id:uid("c")}))};
+  if (d && Array.isArray(d.charts)) { base.charts = d.charts.filter(c=>c && TYPES[c.type]).slice(0,12); }
+  return base; })();
+S.charts = [];
+function saveDash(){ try { localStorage.setItem(DASH_KEY, JSON.stringify({charts:S.dash.charts})); } catch(e){} }
+function destroyCharts(){ (S.charts||[]).forEach(c=>{ try{ c.destroy(); }catch(e){} }); S.charts = []; }
+
+function dashRows(){
+  DX.pname = {}; DX.iname = {};
+  const out = [];
+  allAssessments().forEach(a=>{
+    const pk = keyOf(a); DX.pname[pk] = a.title;
+    a.impacts.forEach(i=>{
+      const s = Object.fromEntries(CRITERIA.map(c=>[c.k, scoreOf(c.k, i.sel[c.k])]));
+      const h = H(i.sel), hr = HR(i), ik = norm(i.name);
+      if (!DX.iname[ik]) DX.iname[ik] = i.name;
+      out.push({pkey:pk, project:a.title, ikey:ik, name:i.name, category:i.category||"Other", phases:phasesOf(i), status:a.status||"draft",
+        author:person(a.owner).name, s, sr:i.rsel?Object.fromEntries(CRITERIA.map(c=>[c.k, scoreOf(c.k, i.rsel[c.k])])):s, H:h, Hr:hr, scored:!!i.rsel, band:band(h), rband:band(hr), hasMit:!!(i.mitigation||"").trim(), legal:s.E===2});
+    });
+  });
+  return out;
+}
+function filtered(rows){
+  const d = S.dash;
+  return rows.filter(r => (!d.projects.length || d.projects.includes(r.pkey)) && (!d.phase || r.phases.includes(d.phase)) && (!d.category || r.category===d.category) && (!d.status || r.status===d.status));
+}
+const fmtV = (v, m) => v==null ? "–" : (m && m.pct) ? Math.round(v)+"%" : Math.abs(v) >= 100 || Number.isInteger(v) ? Math.round(v).toLocaleString() : v.toFixed(2);
+
+/* palette from the page tokens, so charts follow the theme */
+function tok(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || "#888"; }
+function rgba(hex, a){ const h = hex.replace("#",""); if (h.length<6) return hex; const n = parseInt(h.slice(0,6),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+function palette(){
+  const dark = currentTheme()==="dark";
+  return dark ? ["#D7E36C","#86A9F2","#F2A65A","#C39BF0","#5FCFD6","#6FCB8A","#F27D70","#E8C66A","#B5B8A6","#F59BC4"]
+              : ["#6B7A12","#2F62C4","#C9762A","#7A4FB5","#1F8A93","#2F8A4E","#C93A30","#A88616","#6A6D60","#C2457D"];
+}
+function seriesColor(split, key, i){
+  if (split==="band") return tok("--"+key);
+  if (split==="mitigation") return i===0 ? tok("--high") : tok("--low");
+  return palette()[i % 10];
+}
+
+/* turn one chart config into labels, series and a table */
+function compute(cfg, rowsAll){
+  const rows = rowsAll;
+  const m = MEASURES[cfg.measure] || MEASURES.count;
+  const g = GROUPS[cfg.group] || GROUPS.project;
+  // series
+  let series;
+  if (cfg.split==="mitigation") series = [{key:"cur", label:"Current", rows}, {key:"after", label:"After mitigation", rows:rows.map(r=>({...r, H:r.Hr, band:r.rband, s:r.sr}))}];
+  else if (cfg.split && cfg.split!=="none" && GROUPS[cfg.split]){
+    const sg = GROUPS[cfg.split]; const map = new Map();
+    rows.forEach(r=>sg.keys(r).forEach(k=>{ if(!map.has(k)) map.set(k,[]); map.get(k).push(r); }));
+    let ks = [...map.keys()];
+    if (sg.order) ks.sort((a,b)=>sg.order.indexOf(a)-sg.order.indexOf(b)); else ks.sort((a,b)=>map.get(b).length-map.get(a).length);
+    series = ks.slice(0,10).map(k=>({key:k, label:sg.name?sg.name(k):k, rows:map.get(k)}));
+  } else series = [{key:"all", label:m.label, rows}];
+  // x axis
+  if (cfg.group==="criteria"){
+    const narrow = (document.querySelector(".chart-grid")?.clientWidth || 800) < 520;
+    const labels = CRITERIA.map(c=>narrow ? c.k : c.k+" · "+c.name);
+    const data = series.map(s=>CRITERIA.map(c=>{ const v = avg(s.rows.map(r=>r.s[c.k])); return v==null?null:100*v/CMAX[c.k]; }));
+    return {labels, series, data, m:{label:"Mean score as % of maximum", pct:true}, xLabel:"Criterion"};
+  }
+  const xmap = new Map();
+  rows.forEach(r=>g.keys(r).forEach(k=>{ if(!xmap.has(k)) xmap.set(k,true); }));
+  let xs = [...xmap.keys()];
+  const val = (s,x) => { const rs = s.rows.filter(r=>g.keys(r).includes(x)); return rs.length || cfg.measure==="count" ? m.f(rs) : null; };
+  if (g.order) xs.sort((a,b)=>g.order.indexOf(a)-g.order.indexOf(b));
+  else { const first = series[0]; xs.sort((a,b)=>(val(first,b)||0)-(val(first,a)||0)); }
+  if (cfg.top && xs.length > cfg.top) xs = xs.slice(0, cfg.top);
+  let data = series.map(s=>xs.map(x=>val(s,x)));
+  return {labels:xs.map(x=>g.name?g.name(x):x), keys:xs, series, data, m, xLabel:g.label};
+}
+
+function chartCardHTML(cfg, i){
+  const opt = (obj, cur) => Object.entries(obj).map(([k,v])=>`<option value="${k}" ${k===cur?"selected":""}>${esc(typeof v==="string"?v:v.label)}</option>`).join("");
+  const isSc = cfg.type==="scatter", isCrit = cfg.group==="criteria", oneSeries = ["pie","doughnut","polar","pareto"].includes(cfg.type);
+  const mOpts = `<optgroup label="Significance">${["count","pctHigh","meanH","medianH","maxH","sumH"].map(k=>`<option value="${k}" ${k===cfg.measure?"selected":""}>${esc(MEASURES[k].label)}</option>`).join("")}</optgroup>
+    <optgroup label="Mitigation and compliance">${["meanHr","reduction","gap","noncomp"].map(k=>`<option value="${k}" ${k===cfg.measure?"selected":""}>${esc(MEASURES[k].label)}</option>`).join("")}</optgroup>
+    <optgroup label="Criteria">${CRITERIA.map(c=>`<option value="c${c.k}" ${("c"+c.k)===cfg.measure?"selected":""}>${esc(MEASURES["c"+c.k].label)}</option>`).join("")}</optgroup>`;
+  return `<section class="panel chart-card" data-ci="${i}">
+    <div class="cc-head"><input class="cc-title" data-f="title" value="${esc(cfg.title||"Untitled chart")}" aria-label="Chart title" maxlength="80">
+      <div class="cc-act">
+        <button class="mini" data-cc="png" title="Download image (PNG)">${ICON.dl}<span>PNG</span></button>
+        <button class="mini" data-cc="csv" title="Download data (CSV)">${ICON.dl}<span>CSV</span></button>
+        <button class="mini" data-cc="table" aria-pressed="${!!cfg.table}" title="Show data table">${ICON.file}<span>Table</span></button>
+        <button class="mini" data-cc="dup" title="Duplicate">${ICON.copy}</button>
+        <button class="mini" data-cc="del" title="Remove chart" aria-label="Remove chart">${ICON.close}</button>
+      </div></div>
+    <div class="cc-cfg">
+      <label>Chart type<select data-f="type">${opt(TYPES, cfg.type)}</select></label>
+      ${isSc ? `<label>X axis<select data-f="x">${opt(SVARS, cfg.x||"H")}</select></label><label>Y axis<select data-f="y">${opt(SVARS, cfg.y||"Hr")}</select></label>`
+        : `<label>Show<select data-f="measure" ${isCrit?"disabled":""}>${isCrit?`<option>Mean score as % of max</option>`:mOpts}</select></label>
+           <label>By<select data-f="group">${opt(Object.fromEntries(Object.entries(GROUPS).map(([k,v])=>[k,v.label])), cfg.group)}</select></label>`}
+      <label>${isSc?"Colour by":"Split by"}<select data-f="split" ${oneSeries?"disabled":""}>${opt(isSc?{none:"Nothing",band:"Significance band",project:"Project",phase:"Project phase",category:"Category"}:SPLITS, oneSeries?"none":cfg.split)}</select></label>
+      ${isSc||isCrit||["pie","doughnut","polar","radar","heatmap"].includes(cfg.type) ? "" : `<label>Scale<select data-f="scale">${opt({linear:"Linear",log:"Logarithmic"}, cfg.scale)}</select></label>`}
+      ${isSc||isCrit ? "" : `<label>Show top<select data-f="top">${opt({"5":"5","8":"8","12":"12","15":"15","25":"25","0":"All"}, String(cfg.top||0))}</select></label>`}
+    </div>
+    <div class="cc-canvas ${["radar","pie","doughnut","polar"].includes(cfg.type)?"tall":""}"><canvas role="img" aria-label="${esc(cfg.title||"Chart")}"></canvas><p class="cc-empty" hidden>No data for these filters.</p></div>
+    <p class="cc-note"></p>
+    <div class="cc-table tbl-wrap" ${cfg.table?"":"hidden"}></div>
+  </section>`;
+}
+
 function dashboardHTML(){
   const all = allAssessments();
   if (!all.length) return emptyStore();
-  const imps = all.flatMap(a=>a.impacts.map(i=>({...i, a})));
-  const b={low:0,med:0,high:0}; imps.forEach(i=>b[band(H(i.sel))]++);
-  const rb={low:0,med:0,high:0}; imps.forEach(i=>rb[band(HR(i))]++);
-  const owners = new Set(all.map(a=>a.owner)).size;
-  const st = {draft:0,review:0,approved:0}; all.forEach(a=>st[a.status||"draft"]++);
-  // recurring high-risk impacts
-  const groups = {};
-  imps.forEach(i=>{ const k=norm(i.name); if(!k) return; const g = groups[k] || (groups[k]={name:i.name,n:0,high:0,sum:0,max:0}); const h=H(i.sel); g.n++; g.sum+=h; g.max=Math.max(g.max,h); if(band(h)==="high") g.high++; });
-  const top = Object.values(groups).sort((x,y)=>y.high-x.high || y.max-x.max).slice(0,6);
-  const topMax = Math.max(1,...top.map(g=>g.max));
-  // categories
-  const cats = {}; imps.forEach(i=>{ const c=i.category||"Other"; const g=cats[c]||(cats[c]={n:0,sum:0,max:0}); const h=H(i.sel); g.n++; g.sum+=h; g.max=Math.max(g.max,h); });
-  const catRows = Object.entries(cats).map(([c,g])=>({c, avg:Math.round(g.sum/g.n), n:g.n})).sort((x,y)=>y.avg-x.avg);
-  // trend: total high-risk impacts over time from history
-  const ev = []; all.forEach(a=>(a.history||[]).forEach(h=>ev.push({at:h.at, k:keyOf(a), high:h.high||0})));
-  ev.sort((x,y)=>x.at-y.at);
-  const cur = {}; const pts = []; ev.forEach(e=>{ cur[e.k]=e.high; pts.push({at:e.at, v:Object.values(cur).reduce((s,v)=>s+v,0)}); });
-  const total = imps.length || 1;
-  const bar = (bb,label) => `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><b>${label}</b><span class="num" style="color:var(--muted)">${bb.high} high · ${bb.med} med · ${bb.low} low</span></div><div class="stack">${["high","med","low"].map(k=>bb[k]?`<i style="flex-grow:${bb[k]};background:var(--${k})"></i>`:"").join("")}</div></div>`;
+  const rowsAll = dashRows(), rows = filtered(rowsAll), d = S.dash;
+  const cats = [...new Set(rowsAll.map(r=>r.category))].sort();
+  const N = rows.length, hi = rows.filter(r=>r.band==="high");
+  const scored = rows.filter(r=>r.scored); const red = MEASURES.reduction.f(rows);
+  const projN = new Set(rows.map(r=>r.pkey)).size;
+  const kpi = (lbl, val, cls, sub) => `<div class="kpi ${cls||""}"><div class="lbl">${lbl}</div><div class="val">${val}</div>${sub?`<div class="kpi-sub">${sub}</div>`:""}</div>`;
   return `
-  <div class="kpis five">
-    <div class="kpi"><div class="lbl">Assessments</div><div class="val" data-count="${all.length}">0</div></div>
-    <div class="kpi"><div class="lbl">Impacts</div><div class="val" data-count="${imps.length}">0</div></div>
-    <div class="kpi high"><div class="lbl">High risk</div><div class="val" data-count="${b.high}">0</div></div>
-    <div class="kpi low"><div class="lbl">Approved</div><div class="val" data-count="${st.approved}">0</div></div>
-    <div class="kpi"><div class="lbl">Contributors</div><div class="val" data-count="${owners}">0</div></div>
-  </div>
-  <div class="dash-grid">
-    <div class="panel"><div class="panel-h"><h3>Risk across all impacts</h3><span class="hint">${imps.length} scored</span></div>
-      <div style="display:grid;gap:14px">${bar(b,"Current")}${bar(rb,"After mitigation")}</div>
-      <div class="legend">${["high","med","low"].map(k=>`<span class="chip ${k}">${BAND_NAME[k]} ${Math.round(b[k]/total*100)}%</span>`).join("")}</div>
-    </div>
-    <div class="panel"><div class="panel-h"><h3>Review status</h3></div>
-      <div class="stack" style="height:22px">${Object.keys(STATUS).map((k,ix)=>st[k]?`<i style="flex-grow:${st[k]};background:${["var(--muted)","var(--med)","var(--low)"][ix]}"></i>`:"").join("")}</div>
-      <div class="legend">${Object.entries(STATUS).map(([k,v])=>`<span class="status ${k}">${v} · ${st[k]}</span>`).join("")}</div>
-    </div>
-    <div class="panel"><div class="panel-h"><h3>Risk by project phase</h3><span class="hint">Impacts can span phases</span></div>
-      <div style="display:grid;gap:14px">${PHASES.map(ph=>{ const bb={low:0,med:0,high:0}; imps.filter(i=>phasesOf(i).includes(ph)).forEach(i=>bb[band(H(i.sel))]++); return bar(bb, ph); }).join("")}</div>
-    </div>
-    <div class="panel"><div class="panel-h"><h3>Recurring high-risk impacts</h3><span class="hint">Peak H, grouped by name</span></div>
-      <div class="hbars">${top.map((g,k)=>`<div class="hbar"><span title="${esc(g.name)}">${esc(g.name)}</span><span class="track"><i style="width:${Math.max(3,Math.log10(g.max)/Math.log10(Math.max(10,topMax))*100)}%;background:var(--${band(g.max)});animation-delay:${k*70}ms"></i></span><span class="num">${g.max.toLocaleString()} · ${g.n}×${g.high?` · ${g.high} high`:""}</span></div>`).join("")}</div>
-    </div>
-    <div class="panel"><div class="panel-h"><h3>Average H by category</h3></div>
-      <div class="hbars">${catRows.map((r,k)=>`<div class="hbar"><span>${esc(r.c)}</span><span class="track"><i style="width:${Math.max(3,logPos(r.avg))}%;background:var(--${band(r.avg)});animation-delay:${k*70}ms"></i></span><span class="num">${r.avg.toLocaleString()} · ${r.n}</span></div>`).join("")}</div>
+  <div class="panel dash-filters">
+    <div class="panel-h"><h3>What to analyse</h3><button class="linkbtn" data-dash="reset">Reset filters</button></div>
+    <div class="field"><span class="lbl">Projects ${d.projects.length?`· ${d.projects.length} selected`:"· all"}</span>
+      <div class="cats" id="dash-proj"><button type="button" data-dproj="" aria-pressed="${!d.projects.length}">All projects</button>${all.map(a=>`<button type="button" data-dproj="${esc(keyOf(a))}" aria-pressed="${d.projects.includes(keyOf(a))}">${esc(a.title)}</button>`).join("")}</div></div>
+    <div class="cc-cfg">
+      <label>Phase<select id="df-phase"><option value="">All phases</option>${PHASES.map(p=>`<option ${d.phase===p?"selected":""}>${p}</option>`).join("")}</select></label>
+      <label>Category<select id="df-cat"><option value="">All categories</option>${cats.map(c=>`<option ${d.category===c?"selected":""}>${esc(c)}</option>`).join("")}</select></label>
+      <label>Review status<select id="df-status"><option value="">Any status</option>${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${d.status===k?"selected":""}>${v}</option>`).join("")}</select></label>
     </div>
   </div>
-  <div class="panel" style="margin-top:14px"><div class="panel-h"><h3>High-risk impacts over time</h3><span class="hint">Across every assessment</span></div>${trendHTML(pts)}</div>`;
+  ${N ? `<div class="kpis dash-kpis">
+    ${kpi("Projects", projN)}
+    ${kpi("Impacts", N)}
+    ${kpi("High significance", `${hi.length} <small>${Math.round(100*hi.length/N)}%</small>`, "high", "H > 200")}
+    ${kpi("Median H", fmtV(med(rows.map(r=>r.H))), band(med(rows.map(r=>r.H))||0))}
+    ${kpi("Peak H", Math.max(...rows.map(r=>r.H)).toLocaleString(), band(Math.max(...rows.map(r=>r.H))))}
+    ${kpi("Risk reduction", red==null?"–":Math.round(red)+"%", red!=null&&red>0?"low":"", `${scored.length} of ${N} with residual score`)}
+    ${kpi("Control gaps", MEASURES.gap.f(rows), MEASURES.gap.f(rows)?"high":"", "High impacts, no measures")}
+    ${kpi("Non-compliant", MEASURES.noncomp.f(rows), MEASURES.noncomp.f(rows)?"med":"", "E = not meeting legislation")}
+  </div>
+  <div class="panel"><div class="panel-h"><h3>Key findings</h3><span class="hint">Updates with the filters above</span></div><ul class="findings">${findingsHTML(rows)}</ul></div>`
+  : `<div class="empty"><h3>No impacts match these filters</h3><div>Pick more projects or clear the phase, category or status filter.</div></div>`}
+  <div class="dash-bar">
+    <h3>Charts</h3>
+    <div class="dash-bar-act">
+      <label class="add-chart">${ICON.plus}<select id="add-chart" aria-label="Add a chart"><option value="">Add chart…</option><option value="blank">Blank chart</option>${PRESETS.map((p,i)=>`<option value="${i}">${esc(p.title)}</option>`).join("")}</select></label>
+      ${S.dash.charts.length?`<button class="btn" data-dash="pdf">${ICON.pdf} All charts as PDF</button>`:""}
+    </div>
+  </div>
+  ${S.dash.charts.length ? `<div class="chart-grid">${S.dash.charts.map(chartCardHTML).join("")}</div>` : `<div class="empty"><h3>No charts</h3><div>Use Add chart to start from a preset or a blank chart.</div></div>`}
+  <details class="panel guide" style="margin-top:14px"><summary>How to read these charts</summary>
+    <ul class="findings" style="margin-top:12px">
+      <li><b>H</b> is the product of the seven criterion scores (1 to ${MAXH.toLocaleString()}). Because it multiplies, values spread over orders of magnitude: use a logarithmic scale and median rather than mean when a few impacts dominate.</li>
+      <li><b>H′</b> is the residual score after control and mitigation. Impacts without a residual score are counted as unchanged.</li>
+      <li><b>Criteria fingerprint</b> shows each criterion's mean score as a percentage of its maximum (C max 3, E max 2, F max 4, others max 5), so criteria can be compared fairly. The highest spokes are the main risk drivers.</li>
+      <li><b>Pareto</b> ranks impacts by total H with the cumulative share as a line: the few impacts on the left that reach 80% are where mitigation pays off most.</li>
+      <li>Impacts spanning several phases count once in each phase.</li>
+      <li>Chart layouts are saved in this browser. Projects, filters and data are shared by everyone.</li>
+    </ul></details>`;
 }
-function trendHTML(pts){
-  if (pts.length < 2) return `<p class="lede" style="font-size:14px">The trend appears once assessments have been updated a few times.</p>`;
-  const W=640, Hh=200, L=36, R=14, T=14, B=26;
-  const t0=pts[0].at, t1=Math.max(t0+1, pts[pts.length-1].at), vmax=Math.max(1,...pts.map(p=>p.v));
-  const X=t=>L+(t-t0)/(t1-t0)*(W-L-R), Y=v=>T+(1-v/vmax)*(Hh-T-B);
-  let d=""; pts.forEach((p,k)=>{ d += k ? ` H${X(p.at).toFixed(1)} V${Y(p.v).toFixed(1)}` : `M${X(p.at).toFixed(1)},${Y(p.v).toFixed(1)}`; });
-  const ticks = [...new Set([0, Math.round(vmax/2), vmax])];
-  const last = pts[pts.length-1];
-  return `<svg class="chart" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="High-risk impact count over time">
-    ${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`).join("")}
-    <path d="${d} V${Y(0)} H${X(t0)} Z" fill="color-mix(in oklab,var(--high) 14%,transparent)"/>
-    <path class="trend" d="${d}" style="stroke:var(--high)"/>
-    <circle cx="${X(last.at)}" cy="${Y(last.v)}" r="5" fill="var(--high)"/>
-    <text x="${L}" y="${Hh-6}">${fmtShort(t0)}</text><text x="${W-R}" y="${Hh-6}" text-anchor="end">${fmtShort(t1)}</text>
-  </svg>`;
+
+function findingsHTML(rows){
+  const N = rows.length, out = [];
+  const hi = rows.filter(r=>r.band==="high").sort((a,b)=>b.H-a.H);
+  if (hi.length) out.push(`<b>${hi.length} of ${N}</b> impacts (${Math.round(100*hi.length/N)}%) are high significance. The highest is <b>${esc(hi[0].name)}</b> in ${esc(hi[0].project)} at H ${hi[0].H.toLocaleString()}.`);
+  else out.push(`No impact is in the high band. The highest is <b>${esc(rows.slice().sort((a,b)=>b.H-a.H)[0].name)}</b> at H ${Math.max(...rows.map(r=>r.H)).toLocaleString()}.`);
+  const prof = CRITERIA.map(c=>({c, p:100*avg(rows.map(r=>r.s[c.k]))/CMAX[c.k]})).sort((a,b)=>b.p-a.p);
+  out.push(`Main risk drivers: <b>${prof[0].c.k} · ${esc(prof[0].c.name)}</b> (${Math.round(prof[0].p)}% of maximum on average) and <b>${prof[1].c.k} · ${esc(prof[1].c.name)}</b> (${Math.round(prof[1].p)}%). Lowest: ${prof[6].c.k} · ${esc(prof[6].c.name)} (${Math.round(prof[6].p)}%).`);
+  const sc = rows.filter(r=>r.scored);
+  if (sc.length){ const r = MEASURES.reduction.f(rows); const moved = sc.filter(x=>x.band==="high" && x.rband!=="high").length;
+    out.push(`Residual scores are recorded for <b>${sc.length} of ${N}</b> impacts. Measures cut their total H by <b>${Math.round(r)}%</b>${moved?`, and ${moved} impact${moved>1?"s":""} leave the high band`:""}.`); }
+  else out.push(`No residual (after mitigation) scores yet, so the effect of measures can't be measured. Score impacts under <b>After mitigation</b>.`);
+  const gaps = rows.filter(r=>r.band==="high" && !r.hasMit);
+  if (gaps.length) out.push(`<b class="t-high">${gaps.length} high impact${gaps.length>1?"s have":" has"} no control or mitigation measures recorded:</b> ${gaps.slice(0,4).map(g=>esc(g.name)+" ("+esc(g.project)+")").join(", ")}${gaps.length>4?", …":""}.`);
+  const nc = rows.filter(r=>r.legal);
+  if (nc.length) out.push(`<b>${nc.length}</b> impact${nc.length>1?"s are":" is"} flagged as not meeting legislation (E = 2)${nc.length<=4?": "+nc.map(x=>esc(x.name)).join(", "):""}.`);
+  const ph = PHASES.map(p=>({p, n:rows.filter(r=>r.band==="high" && r.phases.includes(p)).length})).sort((a,b)=>b.n-a.n);
+  if (ph[0].n) out.push(`Most high impacts occur during <b>${ph[0].p.toLowerCase()}</b> (${ph[0].n})${ph[1].n?`, followed by ${ph[1].p.toLowerCase()} (${ph[1].n})`:""}.`);
+  const cats = {}; rows.forEach(r=>{ (cats[r.category]=cats[r.category]||[]).push(r.H); });
+  const cr = Object.entries(cats).map(([c,v])=>({c, m:med(v), n:v.length})).sort((a,b)=>b.m-a.m);
+  if (cr.length>1) out.push(`By category, <b>${esc(cr[0].c)}</b> has the highest median H (${Math.round(cr[0].m).toLocaleString()}, ${cr[0].n} impact${cr[0].n>1?"s":""}).`);
+  return out.map(x=>`<li>${x}</li>`).join("");
 }
+
+/* draw every chart after the page markup is in place */
+function afterDashboard(){
+  afterCounts();
+  const rows = filtered(dashRows());
+  document.querySelectorAll(".chart-card").forEach(card=>drawCard(card, rows));
+}
+function drawCard(card, rows){
+  const i = Number(card.dataset.ci), cfg = S.dash.charts[i]; if (!cfg) return;
+  const old = S.charts[i]; if (old){ try{ old.destroy(); }catch(e){} S.charts[i] = null; }
+  const canvas = card.querySelector("canvas"), empty = card.querySelector(".cc-empty"), note = card.querySelector(".cc-note"), tbl = card.querySelector(".cc-table");
+  if (!rows.length){ canvas.hidden = true; empty.hidden = false; note.textContent = ""; tbl.innerHTML = ""; card._table = null; return; }
+  canvas.hidden = false; empty.hidden = true;
+  if (cfg.type==="scatter") return drawScatter(card, cfg, rows);
+  const c = compute(cfg, rows);
+  card._table = {head:[c.xLabel, ...c.series.map(s=>s.label)], rows:c.labels.map((l,j)=>[l, ...c.data.map(d=>d[j])]), m:c.m};
+  tbl.innerHTML = tableHTML(card._table);
+  const best = c.labels.length ? c.labels.reduce((b,l,j)=> (c.data[0][j]??-Infinity) > (c.data[0][b]??-Infinity) ? j : b, 0) : -1;
+  note.textContent = best>=0 && c.data[0][best]!=null ? `Highest${c.series.length>1?" ("+c.series[0].label+")":""}: ${c.labels[best]} · ${fmtV(c.data[0][best], c.m)}` : "";
+  if (cfg.type==="heatmap"){ let b = null; c.data.forEach((row,k)=>row.forEach((v,j)=>{ if (v!=null && (!b || v>b.v)) b = {v, r:c.series[k].label, col:c.labels[j]}; }));
+    note.textContent = b ? `Hottest cell: ${b.r} × ${b.col} · ${fmtV(b.v, c.m)}` : ""; return drawHeatmap(card, cfg, c); }
+  if (!window.Chart){ note.textContent = "Charts need an internet connection to load. The data table still works."; tbl.hidden = false; return; }
+  setChartDefaults();
+  const t = cfg.type, logY = cfg.scale==="log" && !["radar","pie","doughnut","polar"].includes(t) && !c.m.pct;
+  const clean = v => v==null ? null : (logY && v<=0 ? null : v);
+  let data = c.data;
+  if (t==="stacked100"){ const sums = c.labels.map((_,j)=>c.data.reduce((s,d)=>s+(d[j]||0),0)); data = c.data.map(d=>d.map((v,j)=>sums[j]?100*(v||0)/sums[j]:0)); }
+  const pal = palette(), circ = ["pie","doughnut","polar"].includes(t);
+  let datasets, type = {hbar:"bar", stacked:"bar", stacked100:"bar", area:"line", polar:"polarArea", pareto:"bar"}[t] || t;
+  if (circ){
+    const cols = c.labels.map((l,j)=> cfg.group==="band" ? tok("--"+(c.keys||[])[j]) : pal[j%10]);
+    datasets = [{label:c.m.label, data:data[0].map(clean), backgroundColor:cols.map(x=>t==="polar"?rgba(x,.6):x), borderColor:tok("--surface"), borderWidth:2}];
+  } else if (t==="pareto"){
+    const v = data[0].map(x=>x||0), sum = v.reduce((a,b)=>a+b,0); let run = 0;
+    const cum = v.map(x=>{ run += x; return sum ? 100*run/sum : 0; });
+    datasets = [
+      {type:"bar", label:c.m.label, data:v, backgroundColor:c.labels.map((_,j)=>rgba(cum[j]-(sum?100*v[j]/sum:0) < 80 ? tok("--high") : tok("--muted"), .85)), borderRadius:5, yAxisID:"y", order:2},
+      {type:"line", label:"Cumulative %", data:cum, borderColor:tok("--accent-text"), backgroundColor:tok("--accent-text"), pointRadius:3, tension:.25, yAxisID:"y2", order:1}];
+    card._table.head.push("Cumulative %"); card._table.rows.forEach((r,j)=>r.push(Math.round(cum[j])+"%")); tbl.innerHTML = tableHTML(card._table);
+  } else {
+    datasets = c.series.map((s,k)=>{ const col = seriesColor(cfg.split, s.key, k);
+      return {label:s.label, data:data[k].map(clean), backgroundColor: t==="line" ? col : rgba(col, t==="radar"||t==="area" ? .22 : .85), borderColor:col,
+        borderWidth: t==="line"||t==="area"||t==="radar" ? 2.5 : 0, borderRadius: type==="bar" ? 5 : 0, fill: t==="area"||t==="radar", tension:.3, pointRadius: t==="radar"?3:4, spanGaps:true}; });
+  }
+  const stacked = t==="stacked" || t==="stacked100";
+  const fmtTick = v => c.m.pct ? v+"%" : Number(v).toLocaleString();
+  const valAxis = {beginAtZero:!logY, type: logY ? "logarithmic" : "linear", stacked, max: t==="stacked100"||(c.m.pct&&cfg.group==="criteria") ? 100 : undefined,
+    title:{display:true, text: t==="stacked100" ? "Share of total (%)" : c.m.label}, ticks:{callback:fmtTick, precision: c.m.int ? 0 : undefined}, grid:{color:rgba(tok("--line"),.8)}};
+  const catAxis = {stacked, title:{display:true, text:c.xLabel}, grid:{display:false}, ticks:{autoSkip:false, maxRotation:50, callback:function(v){ const l = this.getLabelForValue(v); return l.length>18 ? l.slice(0,17)+"…" : l; }}};
+  const options = {responsive:true, maintainAspectRatio:false, animation:{duration:700, easing:"easeOutQuart"},
+    plugins:{legend:{display: circ || c.series.length>1 || t==="pareto", position:"bottom", labels:{boxWidth:12, usePointStyle:true}},
+      tooltip:{callbacks:{label:ctx=>{ const v = ctx.raw; return `${ctx.dataset.label}: ${t==="stacked100" ? Math.round(v)+"%" : fmtV(typeof v==="number"?v:null, ctx.dataset.label==="Cumulative %"?{pct:true}:c.m)}`; }}}}};
+  if (type==="bar" || type==="line"){
+    if (t==="hbar"){ options.indexAxis = "y"; options.scales = {x:valAxis, y:catAxis}; }
+    else options.scales = {x:catAxis, y:valAxis};
+    if (t==="pareto") options.scales.y2 = {position:"right", min:0, max:100, grid:{display:false}, ticks:{callback:v=>v+"%"}, title:{display:true, text:"Cumulative share"}};
+  }
+  if (t==="radar") options.scales = {r:{beginAtZero:true, max: c.m.pct ? 100 : undefined, ticks:{backdropColor:"transparent", callback:fmtTick}, grid:{color:tok("--line")}, angleLines:{color:tok("--line")}, pointLabels:{font:{size:11}, callback:l=>String(l).length>16 ? String(l).slice(0,15)+"…" : l}}};
+  if (t==="polar") options.scales = {r:{ticks:{backdropColor:"transparent"}, grid:{color:tok("--line")}}};
+  S.charts[i] = new Chart(canvas, {type, data:{labels:c.labels, datasets}, options, plugins:[bgPlugin]});
+}
+function drawScatter(card, cfg, rows){
+  const note = card.querySelector(".cc-note"), tbl = card.querySelector(".cc-table");
+  const xv = cfg.x||"H", yv = cfg.y||"Hr";
+  const get = (r,v) => v==="H" ? r.H : v==="Hr" ? r.Hr : r.s[v];
+  const isCrit = v => v!=="H" && v!=="Hr";
+  const jit = (v, on, i) => on ? v + (((i*7919)%13)/13 - .5)*.3 : v;
+  const split = cfg.split||"band";
+  const groups = new Map();
+  rows.forEach(r=>{ const k = split==="none" ? "all" : split==="project" ? r.pkey : split==="phase" ? (r.phases[0]||"Not set") : split==="category" ? r.category : r.band; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(r); });
+  let keys = [...groups.keys()]; if (split==="band") keys.sort((a,b)=>BAND_ORDER.indexOf(a)-BAND_ORDER.indexOf(b));
+  const label = k => split==="none" ? "Impacts" : split==="project" ? DX.pname[k] : split==="band" ? BAND_NAME[k] : k;
+  card._table = {head:["Impact","Project",SVARS[xv],SVARS[yv]], rows:rows.map(r=>[r.name, r.project, get(r,xv), get(r,yv)]), m:{}};
+  tbl.innerHTML = tableHTML(card._table);
+  if (xv==="H" && yv==="Hr"){ const below = rows.filter(r=>r.scored && r.Hr<r.H).length; note.textContent = `${below} of ${rows.length} impacts sit below the diagonal (lower risk after mitigation). Points on the diagonal have no residual score or no change.`; }
+  else note.textContent = `${rows.length} impacts. Criterion scores are whole numbers, so points are spread slightly to avoid overlap.`;
+  if (!window.Chart){ note.textContent = "Charts need an internet connection to load. The data table still works."; tbl.hidden = false; return; }
+  setChartDefaults();
+  const logX = cfg.scale==="log" && !isCrit(xv), logY = cfg.scale==="log" && !isCrit(yv);
+  const datasets = keys.slice(0,10).map((k,n)=>{ const col = seriesColor(split, k, n);
+    return {label:label(k), data:groups.get(k).map((r,j)=>({x:jit(get(r,xv), isCrit(xv), j), y:jit(get(r,yv), isCrit(yv), j+3), r})), backgroundColor:rgba(col,.75), borderColor:col, pointRadius:6, pointHoverRadius:8}; });
+  const ax = (v, log) => ({type: log ? "logarithmic" : "linear", min: isCrit(v) ? .5 : log ? 1 : 0, max: isCrit(v) ? CMAX[v]+.5 : undefined, title:{display:true, text:SVARS[v]}, ticks:{stepSize: isCrit(v)?1:undefined, callback:v2=>Number(v2).toLocaleString()}, grid:{color:rgba(tok("--line"),.8)}});
+  const diag = {id:"diag", afterDatasetsDraw(ch){ if (!(xv==="H"&&yv==="Hr")) return; const {ctx, scales:{x,y}} = ch; const lo = Math.max(x.min,y.min), hi = Math.min(x.max,y.max); ctx.save(); ctx.strokeStyle = tok("--muted"); ctx.setLineDash([5,5]); ctx.beginPath(); ctx.moveTo(x.getPixelForValue(lo), y.getPixelForValue(lo)); ctx.lineTo(x.getPixelForValue(hi), y.getPixelForValue(hi)); ctx.stroke(); ctx.restore(); }};
+  const i = Number(card.dataset.ci);
+  S.charts[i] = new Chart(card.querySelector("canvas"), {type:"scatter", data:{datasets}, plugins:[bgPlugin, diag],
+    options:{responsive:true, maintainAspectRatio:false, animation:{duration:700},
+      scales:{x:ax(xv, logX), y:ax(yv, logY)},
+      plugins:{legend:{display:datasets.length>1, position:"bottom", labels:{boxWidth:12, usePointStyle:true}},
+        tooltip:{callbacks:{label:ctx=>{ const r = ctx.raw.r; return `${r.name} (${r.project}): ${SVARS[xv].split(" ")[0]} ${get(r,xv).toLocaleString()}, ${SVARS[yv].split(" ")[0]} ${get(r,yv).toLocaleString()}`; }}}}}});
+}
+function drawHeatmap(card, cfg, c){
+  const canvas = card.querySelector("canvas"), wrap = card.querySelector(".cc-canvas");
+  if (c.series.length===1 && cfg.split==="none") c.series[0].label = c.m.label;
+  const dpr = window.devicePixelRatio || 1, W = Math.max(300, wrap.clientWidth || 600);
+  const ctx = canvas.getContext && canvas.getContext("2d"); if (!ctx) return;
+  ctx.font = "12px Manrope, system-ui, sans-serif";
+  const labW = Math.min(170, Math.max(...c.series.map(s=>ctx.measureText(String(s.label)).width)) + 18);
+  const cols = c.labels.length, cw = Math.max(46, (W - labW - 8) / Math.max(1, cols)), rh = 38, top = 64;
+  const Wt = labW + cw*cols + 8, Ht = top + rh*c.series.length + 30;
+  canvas.width = Wt*dpr; canvas.height = Ht*dpr; canvas.style.width = Wt+"px"; canvas.style.height = Ht+"px";
+  wrap.style.height = "auto"; wrap.style.overflowX = "auto";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle = tok("--surface"); ctx.fillRect(0,0,Wt,Ht);
+  const all = c.data.flat().filter(v=>v!=null), max = Math.max(1, ...all);
+  const isH = c.m.hscale, fg = tok("--fg"), mu = tok("--muted");
+  ctx.textBaseline = "middle";
+  c.labels.forEach((l,j)=>{ ctx.save(); ctx.translate(labW + cw*j + cw/2, top-8); ctx.rotate(-Math.PI/5); ctx.fillStyle = mu; ctx.font = "11px Manrope, system-ui, sans-serif"; ctx.textAlign = "left"; ctx.fillText(l.length>16?l.slice(0,15)+"…":l, 0, 0); ctx.restore(); });
+  c.series.forEach((s,k)=>{
+    ctx.fillStyle = fg; ctx.font = "600 12px Manrope, system-ui, sans-serif"; ctx.textAlign = "right";
+    ctx.fillText(String(s.label).length>22?String(s.label).slice(0,21)+"…":s.label, labW-10, top + rh*k + rh/2);
+    c.labels.forEach((_,j)=>{
+      const v = c.data[k][j], x = labW + cw*j, y = top + rh*k;
+      let col = tok("--surface-2");
+      if (v!=null){ const base = isH ? tok("--"+band(v)) : tok("--high"); const a = isH ? .25 + .6*Math.min(1, Math.log10(Math.max(1,v))/Math.log10(MAXH)*1.6) : .12 + .75*(v/max); col = rgba(base, a); }
+      ctx.fillStyle = col; roundRect(ctx, x+2, y+2, cw-4, rh-4, 7); ctx.fill();
+      ctx.fillStyle = v==null ? mu : fg; ctx.font = "600 12px 'IBM Plex Mono', ui-monospace, monospace"; ctx.textAlign = "center";
+      ctx.fillText(v==null ? "–" : fmtV(v, c.m), x + cw/2, y + rh/2);
+    });
+  });
+  ctx.fillStyle = mu; ctx.font = "11px Manrope, system-ui, sans-serif"; ctx.textAlign = "left";
+  ctx.fillText(`${c.m.label} · rows: ${SPLITS[cfg.split]||""} · columns: ${c.xLabel}`, 4, Ht-12);
+}
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+const bgPlugin = {id:"bg", beforeDraw(ch){ const {ctx, width, height} = ch; ctx.save(); ctx.globalCompositeOperation = "destination-over"; ctx.fillStyle = tok("--surface"); ctx.fillRect(0,0,width,height); ctx.restore(); }};
+function setChartDefaults(){ if (!window.Chart) return; Chart.defaults.color = tok("--muted"); Chart.defaults.borderColor = tok("--line"); Chart.defaults.font.family = "Manrope, system-ui, sans-serif"; Chart.defaults.font.size = 12; }
+function tableHTML(t){
+  return `<table style="min-width:0"><thead><tr>${t.head.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${t.rows.map(r=>`<tr>${r.map((v,j)=>j===0?`<td class="name">${esc(v)}</td>`:`<td>${typeof v==="number"?fmtV(v,t.m):esc(v??"–")}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+function cardCanvas(card){ return card.querySelector("canvas"); }
+function chartFileName(cfg, ext){ return ((cfg.title||"chart").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").slice(0,60) || "chart") + "-" + new Date().toISOString().slice(0,10) + "." + ext; }
+function filterSummary(){
+  const d = S.dash;
+  return [d.projects.length ? "Projects: " + d.projects.map(k=>DX.pname[k]||"").join(", ") : "All projects", d.phase||"All phases", d.category||"All categories", d.status?STATUS[d.status]:"Any status"].join(" · ");
+}
+function exportPNG(card){
+  const cv = cardCanvas(card), cfg = S.dash.charts[Number(card.dataset.ci)];
+  if (!cv || cv.hidden || !cv.width){ toast("Nothing to download for these filters"); return; }
+  const k = cv.width / (cv.clientWidth || cv.width) || 1, pad = Math.round(20*k), th = Math.round(58*k);
+  const out = document.createElement("canvas"); out.width = cv.width + pad*2; out.height = cv.height + th + pad;
+  const x = out.getContext("2d");
+  x.fillStyle = tok("--surface"); x.fillRect(0,0,out.width,out.height);
+  x.textBaseline = "top"; x.fillStyle = tok("--fg"); x.font = `700 ${Math.round(17*k)}px Manrope, system-ui, sans-serif`;
+  x.fillText(cfg.title||"Chart", pad, pad);
+  x.fillStyle = tok("--muted"); x.font = `${Math.round(11*k)}px Manrope, system-ui, sans-serif`;
+  x.fillText(filterSummary(), pad, pad + Math.round(24*k));
+  x.drawImage(cv, pad, th);
+  out.toBlob(b=>{ if (b) saveFile(chartFileName(cfg,"png"), b, "Image saved"); else toast("Couldn't create the image"); }, "image/png");
+}
+function exportChartCSV(card){
+  const t = card._table, cfg = S.dash.charts[Number(card.dataset.ci)];
+  if (!t){ toast("Nothing to download for these filters"); return; }
+  const lines = [[cfg.title||"Chart"], [filterSummary()], [], t.head, ...t.rows.map(r=>r.map(v=>typeof v==="number" ? (Number.isInteger(v)?v:Number(v.toFixed(3))) : v))];
+  const csv = lines.map(r=>r.map(v=>{ const s = String(v??""); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(",")).join("\n");
+  saveFile(chartFileName(cfg,"csv"), csv, "Data saved");
+}
+async function exportDashPDF(btn){
+  const cards = [...document.querySelectorAll(".chart-card")].filter(c=>{ const cv = cardCanvas(c); return cv && !cv.hidden; });
+  if (!cards.length){ toast("No charts to export"); return; }
+  const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<span class="spin"></span> Building…`;
+  try {
+    const {jsPDF} = await getPdf();
+    const doc = new jsPDF({unit:"pt", format:"a4", orientation:"landscape"});
+    const W = doc.internal.pageSize.getWidth(), Hh = doc.internal.pageSize.getHeight(), M = 36;
+    doc.setFillColor(27,28,21); doc.rect(0,0,W,70,"F"); doc.setFillColor(207,221,82); doc.rect(0,70,W,4,"F");
+    doc.setTextColor(207,221,82); doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.text("ENVIRONMENTAL IMPACT ASSESSMENT · ANALYSIS DASHBOARD", M, 26);
+    doc.setTextColor(255,255,255); doc.setFontSize(18); doc.text("Impact analysis", M, 52);
+    doc.setTextColor(95,98,86); doc.setFont("helvetica","normal"); doc.setFontSize(9);
+    doc.text(latin(filterSummary() + "   ·   Generated " + fmtDate(Date.now())), M, 92);
+    const items = [...document.querySelectorAll(".findings li")].slice(0,7).map(li=>latin(li.textContent));
+    if (items.length){ doc.setTextColor(27,28,21); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text("Key findings", M, 118); doc.setFont("helvetica","normal"); doc.setFontSize(10);
+      let y = 136; items.forEach(t=>{ const l = doc.splitTextToSize("•  "+t, W-2*M); doc.text(l, M, y); y += l.length*13 + 4; }); }
+    for (const card of cards){
+      const cfg = S.dash.charts[Number(card.dataset.ci)], cv = cardCanvas(card);
+      doc.addPage();
+      doc.setTextColor(27,28,21); doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.text(latin(cfg.title||"Chart"), M, 44);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(95,98,86); doc.text(latin(filterSummary()), M, 60);
+      const note = card.querySelector(".cc-note").textContent; if (note) doc.text(doc.splitTextToSize(latin(note), W-2*M), M, Hh-30);
+      const img = cv.toDataURL("image/png"), r = cv.width / cv.height;
+      let iw = W-2*M, ih = iw / r; if (ih > Hh-130){ ih = Hh-130; iw = ih * r; }
+      doc.addImage(img, "PNG", M, 76, iw, ih);
+    }
+    const pages = doc.getNumberOfPages();
+    for (let k=1;k<=pages;k++){ doc.setPage(k); doc.setFontSize(8); doc.setTextColor(140,142,130); doc.text("Page "+k+" of "+pages, W-M, Hh-12, {align:"right"}); }
+    await saveFile("eia-dashboard-" + new Date().toISOString().slice(0,10) + ".pdf", doc.output("blob"), "PDF saved");
+  } catch(e){ toast("Couldn't build the PDF. Check your connection and try again."); }
+  finally { if (btn.isConnected){ btn.disabled = false; btn.innerHTML = old; } }
+}
+function redrawCharts(){ if (S.view.name==="dashboard" && !S.needAuth) { const rows = filtered(dashRows()); document.querySelectorAll(".chart-card").forEach(c=>drawCard(c, rows)); } }
+
+/* dashboard interactions */
+document.addEventListener("click", e=>{
+  const p = e.target.closest("[data-dproj]");
+  if (p){ const k = p.dataset.dproj; const d = S.dash; d.projects = !k ? [] : d.projects.includes(k) ? d.projects.filter(x=>x!==k) : d.projects.concat([k]); render(); return; }
+  const r = e.target.closest("[data-dash]");
+  if (r){ if (r.dataset.dash==="reset"){ Object.assign(S.dash, {projects:[], phase:"", category:"", status:""}); render(); } else if (r.dataset.dash==="pdf") exportDashPDF(r); return; }
+  const b = e.target.closest("[data-cc]"); if (!b) return;
+  const card = b.closest(".chart-card"), i = Number(card.dataset.ci), cfg = S.dash.charts[i], act = b.dataset.cc;
+  if (act==="png") exportPNG(card);
+  else if (act==="csv") exportChartCSV(card);
+  else if (act==="table"){ cfg.table = !cfg.table; b.setAttribute("aria-pressed", String(cfg.table)); card.querySelector(".cc-table").hidden = !cfg.table; saveDash(); }
+  else if (act==="dup"){ S.dash.charts.splice(i+1, 0, {...cfg, id:uid("c"), title:(cfg.title||"Chart")+" (copy)"}); saveDash(); render(); }
+  else if (act==="del"){ if (!b.classList.contains("armed")){ b.classList.add("armed"); b.title = "Tap again to remove"; toast("Tap × again to remove this chart"); setTimeout(()=>b.classList.remove("armed"), 3000); return; } S.dash.charts.splice(i,1); saveDash(); render(); }
+});
+document.addEventListener("change", e=>{
+  const t = e.target;
+  if (t.id==="df-phase"||t.id==="df-cat"||t.id==="df-status"){ S.dash[{"df-phase":"phase","df-cat":"category","df-status":"status"}[t.id]] = t.value; render(); return; }
+  if (t.id==="add-chart"){ const v = t.value; if (!v) return; const cfg = v==="blank" ? {title:"New chart", type:"bar", measure:"meanH", group:"project", split:"none", scale:"linear", top:12} : {...PRESETS[Number(v)]};
+    cfg.id = uid("c"); S.dash.charts.unshift(cfg); saveDash(); render(); toast("Chart added at the top"); return; }
+  const card = t.closest && t.closest(".chart-card"); if (!card || !t.dataset.f || t.dataset.f==="title") return;
+  const cfg = S.dash.charts[Number(card.dataset.ci)], f = t.dataset.f;
+  cfg[f] = f==="top" ? Number(t.value) : t.value;
+  if (f==="type" && t.value==="scatter"){ cfg.x = cfg.x||"H"; cfg.y = cfg.y||"Hr"; if (!["band","project","phase","category","none"].includes(cfg.split)) cfg.split = "band"; }
+  if (f==="type" && ["radar"].includes(t.value) && cfg.group!=="criteria" && cfg.split==="none") cfg.split = "project";
+  saveDash();
+  const fresh = document.createElement("div"); fresh.innerHTML = chartCardHTML(cfg, Number(card.dataset.ci));
+  const nc = fresh.firstElementChild; card.replaceWith(nc); drawCard(nc, filtered(dashRows()));
+});
+document.addEventListener("input", e=>{ const t = e.target; if (t.classList && t.classList.contains("cc-title")){ const card = t.closest(".chart-card"); S.dash.charts[Number(card.dataset.ci)].title = t.value; clearTimeout(S.tt); S.tt = setTimeout(saveDash, 400); } });
+let resizeT; window.addEventListener("resize", ()=>{ clearTimeout(resizeT); resizeT = setTimeout(()=>{ document.querySelectorAll(".chart-card").forEach(card=>{ if (S.dash.charts[Number(card.dataset.ci)]?.type==="heatmap") drawCard(card, filtered(dashRows())); }); }, 250); });
 
 /* ---------- Compare ---------- */
 function compareHTML(){
@@ -840,7 +1234,7 @@ function assessmentSheet(a){
     sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", closeSheet));
     const submit = async e=>{ e && e.preventDefault();
       const title = $("#a-title").value.trim(); if(!title){ $("#a-err").hidden=false; $("#a-title").focus(); return; }
-      const base = a ? strip(a) : {id:uid("a"), createdAt:Date.now(), impacts:[], history:[], status:"draft"};
+      const base = a ? strip(a) : {id:uid("a"), createdAt:Date.now(), impacts:[], status:"draft"};
       Object.assign(base, {title, project:$("#a-project").value.trim(), location:$("#a-loc").value.trim(), description:$("#a-desc").value.trim()});
       closeSheet();
       const ok = await upsert(base, isNew ? "Assessment created" : "Details updated");
@@ -1116,9 +1510,10 @@ document.addEventListener("click", e=>{
   else if (act==="csv" && a) exportCSV(a);
   else if (act==="pdf" && a) exportPDF(a, t);
   else if (act==="comment" && S.comments){ const el = $("#d-head"); S.comments.openComposer({element: el}).then(r=>{ if (r && r.opened===false) toast("Tap inside the app first, then try Comment again"); }).catch(()=>toast("Comments aren't available in this view")); }
+  else if (act==="analyse-this" && a){ Object.assign(S.dash, {projects:[keyOf(a)], phase:"", category:"", status:""}); S.view={name:"dashboard"}; window.scrollTo({top:0}); render(); }
   else if (act==="compare-this" && a){ S.cmp.a = keyOf(a); S.cmp.b = ""; S.view={name:"compare"}; window.scrollTo({top:0}); render(); }
   else if (act==="copy" && a){
-    const copy = {id:uid("a"), createdAt:Date.now(), history:[], status:"draft", title:"Copy of "+a.title, project:a.project, location:a.location, description:a.description,
+    const copy = {id:uid("a"), createdAt:Date.now(), status:"draft", title:"Copy of "+a.title, project:a.project, location:a.location, description:a.description,
       impacts:a.impacts.map(i=>({...i, id:uid("i"), sel:{...i.sel}, rsel:i.rsel?{...i.rsel}:undefined, evidence:[]}))};
     copy.impacts.forEach(i=>{ if(!i.rsel) delete i.rsel; });
     upsert(copy, "Created from a shared assessment").then(ok=>{ if(ok){ toast("Copied to your assessments"); S.view={name:"detail", owner:S.offline?"local":S.meId, id:copy.id}; window.scrollTo({top:0}); render(); } });

@@ -19,10 +19,10 @@ High impacts call for control or mitigation measures.
 - Project phase for each impact: commissioning, operation, decommissioning
 - Residual risk after mitigation, with before-and-after comparison
 - Risk heatmap (magnitude × severity), significance chart and evaluation matrix
-- Dashboard across all assessments, and a side-by-side compare view
+- Analysis dashboard: filter by project, phase, category and status; headline figures and automatic key findings; charts you configure yourself (measure, grouping, split, chart type, scale), including Pareto, radar criteria fingerprint, heatmap and scatter; download each chart as PNG or CSV, or all charts as one PDF
+- Side-by-side compare view
 - Review status: Draft, Under review, Approved
 - Photo and file evidence for each impact
-- Change history with a trend line
 - PDF report and CSV export
 - Light and dark themes; works on phones, tablets and computers
 
