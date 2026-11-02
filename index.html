@@ -275,9 +275,20 @@ details.guide[open] summary::after{transform:rotate(45deg)}
 .dot.high::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--high);animation:pulse 1.8s ease-out infinite}
 @keyframes pulse{from{transform:scale(.7);opacity:.9}to{transform:scale(1.5);opacity:0}}
 .hm-x{text-align:center;font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.06em;margin-top:6px}
+.dash-grid > .wide{grid-column:1/-1}
+.hm-panel .panel-h{flex-wrap:wrap}
+.hm-seg button{padding:6px 11px;font-size:13px}
+.hm-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:640px){.hm-pair{grid-template-columns:1fr}}
+.hm-pair figure{margin:0;min-width:0}
+.hm-pair figcaption{font-weight:700;font-size:13px;margin:0 0 6px 30px}
+.dot.unscored{outline:2px dashed var(--fg);outline-offset:1px;opacity:.75}
+.dot.unscored::after{display:none}
+.hm-note{font-size:13px;margin:12px 0 0;color:var(--fg)}
+.hm-mv{color:var(--muted);font-family:var(--f-mono);font-size:12px}
 .hm-key{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:13px}
 .hm-key span{display:inline-flex;gap:6px;align-items:center}
-.hm-key .dot{width:18px;height:18px;font-size:10px}
+.hm-key .dot{width:18px;height:18px;font-size:10px;display:grid;place-items:center;flex:none}
 .hm-key .dot::after{display:none}
 
 /* evidence */
@@ -750,21 +761,38 @@ function beforeAfterHTML(imps){
     <div class="ba-num">${x.h.toLocaleString()} <span class="arrow">→</span> ${x.r.toLocaleString()}<span class="drop ${d<0?"up":""}">${d>0?"−"+d+"%":d<0?"+"+(-d)+"%":"no change"}</span></div>
   </div>`;}).join("")}</div><div class="legend"><span class="tag">Top bar: current</span><span class="tag">Bottom bar: after measures</span></div>`;
 }
-function heatmapHTML(imps){
-  const ranked = imps.slice().sort((a,b)=>H(b.sel)-H(a.sel));
-  const rank = new Map(ranked.map((i,k)=>[i.id,k+1]));
+/* Risk heatmap: A (magnitude) × D (severity), current or after mitigation */
+function hmGrid(ranked, rank, which){
+  const selOf = i => which==="after" ? (i.rsel || i.sel) : i.sel;
   let g = "";
   for (let d=5; d>=1; d--){
     g += `<div class="hm-ax">${d}</div>`;
     for (let a=1; a<=5; a++){
       const p=a*d, cls = p<=4?"l":p<=12?"m":"h";
-      const here = ranked.filter(i=>scoreOf("A",i.sel.A)===a && scoreOf("D",i.sel.D)===d);
-      g += `<div class="hm-cell ${cls}" title="A ${a} × D ${d}">${here.map(i=>`<button class="dot ${band(H(i.sel))}" data-imp="${esc(i.id)}" title="${esc(i.name)} · H ${H(i.sel).toLocaleString()}" aria-label="${esc(i.name)}">${rank.get(i.id)}</button>`).join("")}</div>`;
+      const here = ranked.filter(i=>{ const s = selOf(i); return scoreOf("A",s.A)===a && scoreOf("D",s.D)===d; });
+      g += `<div class="hm-cell ${cls}" title="A ${a} × D ${d}">${here.map(i=>{ const h = H(selOf(i)), unscored = which==="after" && !i.rsel;
+        return `<button class="dot ${band(h)}${unscored?" unscored":""}" data-imp="${esc(i.id)}" title="${esc(i.name)} · ${which==="after"?"H′":"H"} ${h.toLocaleString()}${unscored?" (no residual score yet)":""}" aria-label="${esc(i.name)}">${rank.get(i.id)}</button>`; }).join("")}</div>`;
     }
   }
   g += `<div></div>${[1,2,3,4,5].map(a=>`<div class="hm-ax">${a}</div>`).join("")}`;
-  return `<div class="hm"><div class="hm-y">D · Scale / Severity</div><div><div class="hm-grid">${g}</div><div class="hm-x">A · Quantity / Magnitude</div></div></div>
-    <div class="hm-key">${ranked.map(i=>`<span><span class="dot ${band(H(i.sel))}">${rank.get(i.id)}</span>${esc(i.name)}</span>`).join("")}</div>`;
+  return `<div class="hm"><div class="hm-y">D · Scale / Severity</div><div><div class="hm-grid">${g}</div><div class="hm-x">A · Quantity / Magnitude</div></div></div>`;
+}
+function heatmapHTML(imps, mode){
+  mode = mode || "now";
+  const ranked = imps.slice().sort((a,b)=>H(b.sel)-H(a.sel));
+  const rank = new Map(ranked.map((i,k)=>[i.id,k+1]));
+  const scored = imps.filter(i=>i.rsel).length;
+  const cellBand = s => { const p = scoreOf("A",s.A)*scoreOf("D",s.D); return p<=4?"l":p<=12?"m":"h"; };
+  const inRed = which => imps.filter(i=>cellBand(which==="after" ? (i.rsel||i.sel) : i.sel)==="h").length;
+  const moved = imps.filter(i=>i.rsel && (scoreOf("A",i.rsel.A)!==scoreOf("A",i.sel.A) || scoreOf("D",i.rsel.D)!==scoreOf("D",i.sel.D))).length;
+  const summary = mode==="now" ? "" : !scored
+    ? `<p class="hm-note">No residual scores yet. Open an impact and score it under <b>After mitigation</b>; until then, impacts stay at their current position (dashed outline).</p>`
+    : `<p class="hm-note">With measures in place, <b>${moved}</b> of ${imps.length} impact${imps.length>1?"s":""} move${moved===1?"s":""} to a different cell, and impacts in the red zone go from <b>${inRed("now")}</b> to <b>${inRed("after")}</b>.${scored<imps.length?` ${imps.length-scored} impact${imps.length-scored>1?"s have":" has"} no residual score yet (dashed outline).`:""}</p>`;
+  const key = `<div class="hm-key">${ranked.map(i=>{ const h = H(i.sel), r = i.rsel ? H(i.rsel) : null;
+    const lbl = mode==="now" || r==null ? `${esc(i.name)}` : `${esc(i.name)} <span class="hm-mv">${h.toLocaleString()} → <b style="color:var(--${band(r)})">${r.toLocaleString()}</b></span>`;
+    return `<span><span class="dot ${band(mode==="after" ? (r ?? h) : h)}">${rank.get(i.id)}</span>${lbl}</span>`; }).join("")}</div>`;
+  if (mode==="both") return `<div class="hm-pair"><figure><figcaption>Current</figcaption>${hmGrid(ranked, rank, "now")}</figure><figure><figcaption>After mitigation</figcaption>${hmGrid(ranked, rank, "after")}</figure></div>${summary}${key}`;
+  return `${hmGrid(ranked, rank, mode)}${summary}${key}`;
 }
 function evThumbs(i){
   const ev = i.evidence||[]; if(!ev.length) return "";
@@ -963,8 +991,11 @@ function detailHTML(full){
   </div>
   ${s.n?`<div class="panel"><div class="panel-h"><h3>Significance by impact</h3><span class="hint">Log scale · dashed lines at 25 and 200</span></div>${chartHTML(a.impacts)}</div>
   <div class="dash-grid" style="margin-bottom:14px">
-    <div class="panel"><div class="panel-h"><h3>Risk heatmap</h3><span class="hint">Magnitude × severity · tap a dot</span></div>${heatmapHTML(a.impacts)}</div>
-    <div class="panel"><div class="panel-h"><h3>Before and after mitigation</h3>${s.scored?`<span class="hint">Total H down ${s.cut}%</span>`:""}</div>${beforeAfterHTML(a.impacts)}</div>
+    <div class="panel hm-panel ${S.hmMode==="both"?"wide":""}"><div class="panel-h"><h3>Risk heatmap</h3>
+      <div class="seg hm-seg" role="group" aria-label="Show heatmap">${[["now","Current"],["after","After mitigation"],["both","Side by side"]].map(([k,l])=>`<button data-hm="${k}" aria-pressed="${(S.hmMode||"now")===k}">${l}</button>`).join("")}</div></div>
+      <p class="hint" style="margin:-4px 0 10px">Magnitude (A) × severity (D) · tap a dot to open the impact</p>
+      ${heatmapHTML(a.impacts, S.hmMode||"now")}</div>
+    <div class="panel ${S.hmMode==="both"?"wide":""}"><div class="panel-h"><h3>Before and after mitigation</h3>${s.scored?`<span class="hint">Total H down ${s.cut}%</span>`:""}</div>${beforeAfterHTML(a.impacts)}</div>
   </div>`:""}
   <div class="panel"><div class="panel-h"><h3>Evaluation matrix</h3>${s.n?`<span class="hint">${mine?"Tap a row to edit":"Tap a row for details"}</span>`:""}</div>${table}</div>
   ${s.n?`<div class="panel"><div class="panel-h"><h3>Control & mitigation</h3><span class="hint">Highest risk first${s.evidence?` · ${s.evidence} evidence file${s.evidence>1?"s":""}`:""}</span></div><div class="imp-list">${imps.map(i=>{const h=H(i.sel), r=i.rsel?H(i.rsel):null;return `<button class="imp" data-imp="${esc(i.id)}"><b>${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span></b><span class="chip ${band(h)}">${BAND_NAME[band(h)]} · ${h.toLocaleString()}${r!=null?` → ${r.toLocaleString()}`:""}</span>${phasesOf(i).length?`<span class="phase-row">${phaseTags(i)}</span>`:""}${i.notes?`<p>${esc(i.notes)}</p>`:""}<p>${i.mitigation?`<strong>Measures:</strong> ${esc(i.mitigation)}`:(band(h)==="high"?`<strong style="color:var(--high)">No measures recorded yet.</strong> High impacts need control or mitigation.`:"No measures recorded.")}</p>${evThumbs(i)}</button>`;}).join("")}</div></div>`:""}
@@ -1535,6 +1566,7 @@ function live(a, ops){
 
 /* ---------- Who's here ---------- */
 S.pres = {};
+try { const m = localStorage.getItem("eia-hm"); if (["now","after","both"].includes(m)) S.hmMode = m; } catch(e){}
 function others(){
   return Object.entries(S.pres||{}).filter(([k])=>k!==S.meId).map(([k, metas])=>{
     const m = (metas||[]).reduce((x,y)=>((y.at||0) > (x.at||0) ? y : x), (metas||[])[0] || {});
@@ -1953,11 +1985,12 @@ async function exportPDF(a, btn){
 
 /* ---------- Events ---------- */
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-act],[data-open],[data-tab],[data-imp],[data-status],[data-phase],[data-who]");
+  const t = e.target.closest("[data-act],[data-open],[data-tab],[data-imp],[data-status],[data-phase],[data-who],[data-hm]");
   if (!t || t.closest("#layer")) return;
   if (t.dataset.tab){ S.view = {name:t.dataset.tab}; render(); return; }
   if (t.dataset.phase!=null){ S.phase = t.dataset.phase; render(); return; }
   if (t.dataset.who){ S.who = t.dataset.who; render(); return; }
+  if (t.dataset.hm){ S.hmMode = t.dataset.hm; try { localStorage.setItem("eia-hm", S.hmMode); } catch(e){} S.quietUntil = Date.now() + 600; render(); return; }
   if (t.dataset.open!=null){ S.phase=""; const [owner,id] = t.dataset.open.split("|"); S.view={name:"detail", owner, id}; window.scrollTo({top:0}); render(); return; }
   if (t.dataset.act==="db-help"){ dbUpdateSheet(); return; }
   const a = S.view.name==="detail" ? findA(S.view.owner, S.view.id) : null;
