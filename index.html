@@ -355,6 +355,82 @@ table.mx td.name{max-width:none}
 .notice.warn svg{color:var(--high)}
 .steps{margin:0;padding-left:20px;display:grid;gap:8px;font-size:14px}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
+/* roles, approval, review comments */
+.role-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;background:var(--surface-2);color:var(--muted)}
+.role-badge.r-owner,.role-badge.r-moderator{background:color-mix(in oklab,var(--accent) 35%,var(--surface));color:var(--accent-ink)}
+:root[data-theme="dark"] .role-badge.r-owner,:root[data-theme="dark"] .role-badge.r-moderator{color:var(--accent-text)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .role-badge.r-owner,:root:not([data-theme="light"]) .role-badge.r-moderator{color:var(--accent-text)}}
+.you{font-weight:500;color:var(--muted)}
+.field .sh-person select[data-role-for],.sh-person select[data-role-for]{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 10px;font-size:13px;flex:none}
+.approved-banner{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:color-mix(in oklab,var(--low) 14%,var(--surface));font-size:14px;max-width:640px}
+.approved-banner svg{color:var(--low);flex:none;margin-top:3px}
+.status-pick button[disabled]{opacity:.55;cursor:not-allowed}
+.status-pick button svg{vertical-align:-1px}
+.review-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.review-bar .btn{height:36px}
+.sect{display:grid;gap:12px;margin-bottom:22px}
+.sect-h{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:20px;margin:4px 0 0;letter-spacing:-.01em}
+.sect-h svg{color:var(--low)}
+.sect-h span{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-weight:500}
+.tag.cmt-tag{text-transform:none;letter-spacing:0;font-family:var(--f-body);font-weight:600;background:color-mix(in oklab,var(--accent) 30%,var(--surface));color:var(--fg)}
+.tag.cmt-tag svg{width:11px;height:11px}
+.cmt-slot{display:inline-flex;vertical-align:middle;margin-left:6px}
+.cmt-slot:empty{display:none}
+.cmt-pin{display:inline-flex;align-items:center;gap:2px;height:22px;min-width:22px;padding:0 5px;border-radius:999px 999px 999px 4px;border:0;font-size:11px;font-weight:700;line-height:1;cursor:pointer;transition:transform .15s;vertical-align:middle}
+.cmt-pin svg{width:12px;height:12px}
+.cmt-pin:hover{transform:scale(1.12)}
+.cmt-pin.st-open{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 35%,transparent)}
+.cmt-pin.st-acknowledged{background:var(--low);color:#fff}
+.cmt-pin.st-rejected{background:var(--high);color:#fff}
+.cmt-pin.add{background:transparent;color:var(--muted);border:1.5px dashed var(--muted);border-radius:999px;padding:0;width:22px;justify-content:center}
+.cmt-pin.add:hover{color:var(--accent-text);border-color:var(--accent-text)}
+.cmt-pin.demo{display:inline-flex;width:18px;height:18px;min-width:0;cursor:default}
+.cmt-pop{position:fixed;z-index:30;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);opacity:0;transform:translateY(4px);transition:opacity .18s ease,transform .18s ease;max-height:min(70vh,520px);display:flex;flex-direction:column;overflow:hidden}
+.cmt-pop.show{opacity:1;transform:none}
+.pop-h{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.pop-h svg{width:14px;height:14px;color:var(--accent-text)}
+.pop-h b{flex:1;min-width:0;overflow-wrap:anywhere}
+.pop-x{border:0;background:none;color:var(--muted);width:26px;height:26px;display:grid;place-items:center;border-radius:8px}
+.pop-x svg{width:13px;height:13px}
+.pop-b{overflow-y:auto;padding:10px 12px;display:grid;gap:12px;overscroll-behavior:contain}
+.cmt{display:grid;gap:6px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.cmt:last-of-type{border-bottom:0}
+.cmt header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px}
+.cmt header time,.rep time{font-size:11px;color:var(--muted)}
+.cmt p{margin:0;font-size:14px;overflow-wrap:anywhere}
+.cst{margin-left:auto;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+.cst.st-open{background:color-mix(in oklab,var(--accent) 35%,var(--surface));color:var(--fg)}
+.cst.st-acknowledged{background:color-mix(in oklab,var(--low) 16%,transparent);color:var(--low)}
+.cst.st-rejected{background:color-mix(in oklab,var(--high) 16%,transparent);color:var(--high)}
+.rep{display:flex;gap:8px;padding:6px 0 0 10px;border-left:2px solid var(--line);margin-left:10px}
+.rep .av.sm{margin-left:0}
+.rep-h{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px}
+.rep p{font-size:13px}
+.rk{display:inline-flex;align-items:center;gap:3px;font-weight:700;font-size:11px}
+.rk svg{width:11px;height:11px}
+.rk.ack{color:var(--low)} .rk.rej{color:var(--high)}
+.cmt-act,.cmt-new{display:grid;gap:6px}
+.cmt-act textarea,.cmt-new textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:10px;padding:8px 10px;font-size:13px;resize:vertical;min-height:40px}
+.cmt-btns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.btn.mini-btn{height:30px;padding:0 10px;font-size:12px;border-radius:9px}
+.btn.mini-btn svg{width:12px;height:12px}
+.btn.mini-btn.ok{color:var(--low);border-color:color-mix(in oklab,var(--low) 40%,var(--line))}
+.btn.mini-btn.no{color:var(--high);border-color:color-mix(in oklab,var(--high) 40%,var(--line))}
+.danger-link{color:var(--high);margin-left:auto}
+.danger-link.armed{font-weight:800}
+.cmp-mode{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 14px}
+.cmp-mode .lbl{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.cmp-arr{color:var(--muted);font-weight:500;margin:0 2px}
+.cmp-stats .val.sm{font-size:16px;line-height:1.5}
+.cmp-strip-l{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-6px}
+.cmp-col .strip + .strip{margin-top:-6px}
+.cmp-foot{font-size:12px;color:var(--muted);margin:0}
+td.cmp-pair{white-space:nowrap}
+td.cmp-pair span.h{display:inline-block;padding:2px 7px;border-radius:7px;font-weight:700}
+td.cmp-pair span.h.low{background:color-mix(in oklab,var(--low) 22%,transparent);color:var(--low)}
+td.cmp-pair span.h.med{background:color-mix(in oklab,var(--med) 22%,transparent);color:var(--med)}
+td.cmp-pair span.h.high{background:color-mix(in oklab,var(--high) 24%,transparent);color:var(--high)}
+.cmp-uns{opacity:.6}
 /* access and sharing */
 .access-box{display:grid;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);max-width:640px}
 .acc-row{display:flex;align-items:center;gap:10px;min-width:0}
@@ -379,7 +455,7 @@ table.mx td.name{max-width:none}
 .sh-search{flex:1 1 200px;min-width:0;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:0 12px}
 .sh-search:focus-within{border-color:var(--accent-text);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 35%,transparent)}
 .sh-search svg{width:16px;height:16px;color:var(--muted);flex:none}
-.field .sh-search input{border:0;background:none;outline:none;box-shadow:none;padding:11px 0;flex:1;min-width:0;width:auto}
+.sh-search input,.field .sh-search input{border:0;background:none;outline:none;box-shadow:none;padding:11px 0;flex:1;min-width:0;width:auto}
 .sh-sug{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow-y:auto;max-height:260px;display:grid;box-shadow:var(--shadow)}
 .sh-sug button[aria-selected="true"]{background:var(--surface-2)}
 .sh-hit{display:grid;flex:1;min-width:0}
@@ -490,6 +566,7 @@ table.mx td.name{max-width:none}
     <span class="online" id="online" hidden></span>
     <button class="icon-btn" id="theme-btn" aria-label="Switch theme" title="Switch theme"></button>
     <img class="me" id="me-avatar" alt="" hidden>
+    <button class="icon-btn" id="people-btn" hidden aria-label="People and roles" title="People and roles"></button>
     <button class="btn ghost" id="signout" hidden>Account</button>
   </div>
 </header>
@@ -570,6 +647,7 @@ const ICON = {
   hist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg>',
   dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   cmp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>',
+  check:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg>',
   globe:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
   pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
@@ -611,6 +689,10 @@ function isMine(a){ return a.owner && (a.owner==="local" || a.owner===S.meId); }
 const NO_SHARE = {access:"view", editors:[], viewers:[]};
 const shareOf = a => a._share || NO_SHARE;
 function canEditA(a){
+  if (S.sb && (a.status||"draft")==="approved" && !S.isMod) return false;
+  return canEditBase(a);
+}
+function canEditBase(a){
   if (a.owner==="local") return true;
   if (!S.canWrite) return false;
   if (isMine(a)) return true;
@@ -659,7 +741,7 @@ async function render(){
   const app = $("#app"), v = S.view.name;
   const ae = document.activeElement, fid = ae && ae.id && app.contains(ae) ? ae.id : null, fsel = fid && "selectionStart" in ae ? [ae.selectionStart, ae.selectionEnd] : null;
   const vkey = v + (S.view.id||""); if (vkey !== S.lastView){ S.lastView = vkey; trackPresence(); }
-  setTimeout(()=>{ updatePresenceUI(); if (fid){ const el = document.getElementById(fid); if (el && document.activeElement!==el){ el.focus({preventScroll:true}); if (fsel) try { el.setSelectionRange(fsel[0], fsel[1]); } catch(e){} } } }, 0);
+  setTimeout(()=>{ updatePresenceUI(); fillComments(); if (popSlot && !popSlot.isConnected) refreshPop(); if (fid){ const el = document.getElementById(fid); if (el && document.activeElement!==el){ el.focus({preventScroll:true}); if (fsel) try { el.setSelectionRange(fsel[0], fsel[1]); } catch(e){} } } }, 0);
   destroyCharts();
   if (S.needAuth){ app.innerHTML = heroHTML() + authHTML(); bindAuth(); return; }
   if (v === "detail"){ const a = findA(S.view.owner, S.view.id); if (a){ app.innerHTML = detailHTML(a); afterCounts(); return; } S.view={name:"history"}; }
@@ -715,7 +797,9 @@ function historyHTML(){
   const body = !all.length ? emptyStore()
     : !list.length && !q ? `<div class="empty"><h3>${who==="mine"?"You haven't created an assessment yet":"Nothing shared with you yet"}</h3><div>${who==="mine"?"Tap Add to start one.":"When a creator adds you to their assessment, it appears here."}</div></div>`
     : !list.length ? `<div class="empty"><h3>Nothing matches “${esc(S.q)}”</h3><div>Try a project name, location, status or impact.</div></div>`
-    : `<div class="grid">${list.map(cardHTML).join("")}</div>`;
+    : (()=>{ const ok = list.filter(a=>(a.status||"draft")==="approved"), rest = list.filter(a=>(a.status||"draft")!=="approved");
+        return (ok.length ? `<section class="sect"><h2 class="sect-h">${ICON.check} Approved projects <span>${ok.length}</span></h2><div class="grid">${ok.map(cardHTML).join("")}</div></section>` : "")
+          + (rest.length ? `<section class="sect">${ok.length?`<h2 class="sect-h">In progress <span>${rest.length}</span></h2>`:""}<div class="grid">${rest.map(cardHTML).join("")}</div></section>` : ""); })();
   return whoBar + body + guideHTML();
 }
 function cardHTML(a, i){
@@ -723,7 +807,7 @@ function cardHTML(a, i){
   return `<button class="card" style="--i:${i}" data-open="${esc(keyOf(a))}">
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
       <div style="min-width:0"><h3>${esc(a.title)}</h3><div class="sub">${esc([a.project,a.location].filter(Boolean).join(" · "))}</div></div>
-      <div style="display:grid;gap:4px;justify-items:end">${isMine(a)?'<span class="tag mine">Yours</span>':S.sb&&canEditA(a)?'<span class="tag can-edit">Can edit</span>':""}${statusHTML(a.status)}${S.sb&&S.shareReady?accessTag(a):""}</div>
+      <div style="display:grid;gap:4px;justify-items:end">${isMine(a)?'<span class="tag mine">Yours</span>':S.sb&&canEditA(a)?'<span class="tag can-edit">Can edit</span>':""}${statusHTML(a.status)}${S.sb&&S.shareReady?accessTag(a):""}${S.sb&&openCount(a.id)?`<span class="tag cmt-tag">${ICON.msg} ${openCount(a.id)} open comment${openCount(a.id)>1?"s":""}</span>`:""}</div>
     </div>
     ${stripHTML(s.bands, s.n)}
     <div class="card-foot">
@@ -788,7 +872,7 @@ function matrixTable(imps, which){
     const tail = after
       ? (unscored ? `<td>—</td><td class="mx-none">No residual score</td>` : `<td class="h ${band(r)}">${r.toLocaleString()}</td><td class="${pct(h,r)>0?"mx-down":pct(h,r)<0?"mx-up":""}">${pct(h,r)>0?"−"+pct(h,r)+"%":pct(h,r)<0?"+"+(-pct(h,r))+"%":"No change"}</td>`)
       : `<td class="h ${band(h)}">${h.toLocaleString()}</td><td class="${r==null?"":"h "+band(r)}">${r==null?"—":r.toLocaleString()}</td>`;
-    return `<tr class="row${unscored?" unscored":""}" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span><small>${esc([catsOf(i).join(", "), phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${cells}${tail}</tr>`;
+    return `<tr class="row${unscored?" unscored":""}" data-imp="${esc(i.id)}" tabindex="0"><td class="name">${esc(i.name)}${which==="after"?"":slot(S.view.id, "imp:"+i.id, "Impact: "+i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span><small>${esc([catsOf(i).join(", "), phasesOf(i).join(", ")].filter(Boolean).join(" · "))}</small></td>${cells}${tail}</tr>`;
   }).join("");
   return `<div class="tbl-wrap"><table class="mx"><colgroup><col class="c-name">${CRITERIA.map(()=>`<col class="c-k">`).join("")}<col class="c-h"><col class="c-h2"></colgroup><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
@@ -863,7 +947,7 @@ function accessHTML(a){
     <p class="acc-you acc-${role}">${you}</p>
   </div>`;
 }
-function dbNoticeHTML(){ return S.sb && (S.shareReady===false || S.settingsOff || S.patchOff) ? `<div class="notice warn">${ICON.info}<div><b>Your database needs the latest update.</b> Sharing, live co-editing or private dashboards won't work until you run <b>supabase-setup.sql</b> again in Supabase. <button class="linkbtn" data-act="db-help">Show me how</button></div></div>` : ""; }
+function dbNoticeHTML(){ return S.sb && (S.shareReady===false || S.settingsOff || S.patchOff || S.rolesOff || S.cmtsOff) ? `<div class="notice warn">${ICON.info}<div><b>Your database needs the latest update.</b> Sharing, live co-editing, roles, approvals, review comments or private dashboards won't work until you run <b>supabase-setup.sql</b> again in Supabase. <button class="linkbtn" data-act="db-help">Show me how</button></div></div>` : ""; }
 function dbUpdateSheet(){
   openSheet(`
     <div class="sheet-h"><h3>Update your database</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
@@ -991,6 +1075,207 @@ function shareSheet(a){
   });
 }
 
+/* ---------- Roles: owner, moderators, users ---------- */
+S.roles = {}; S.isMod = false; S.isOwner = false;
+async function loadRoles(){
+  if (!S.sb) return;
+  const {data, error} = await S.sb.from("app_roles").select("user_id,role");
+  if (error){ S.rolesOff = true; return; }
+  S.rolesOff = false;
+  S.roles = Object.fromEntries((data||[]).map(r=>[r.user_id, r.role]));
+  S.isOwner = S.roles[S.meId]==="owner"; S.isMod = S.isOwner || S.roles[S.meId]==="moderator";
+}
+const roleOfUser = id => S.roles[id] || "user";
+const ROLE_NAME = {owner:"Owner · Moderator", moderator:"Moderator", user:"User"};
+function canSetStatus(a, st){
+  if (!S.sb) return canEditA(a);
+  if (S.isMod) return true;
+  return canEditBase(a) && (a.status||"draft")!=="approved" && st!=="approved";
+}
+
+function peopleSheet(){
+  let list = [], q = "";
+  const row = p => {
+    const me = p.id===S.meId, r = p.role || "user";
+    const ctl = S.isOwner && !me && r!=="owner"
+      ? `<select data-role-for="${esc(p.id)}" aria-label="Role for ${esc(p.display_name||p.email)}"><option value="user" ${r==="user"?"selected":""}>User</option><option value="moderator" ${r==="moderator"?"selected":""}>Moderator</option></select>`
+      : `<span class="role-badge r-${r}">${ROLE_NAME[r]}</span>`;
+    return `<div class="sh-person">${avatarHTML(p.id, p.display_name||p.email)}<div class="sh-name">${esc(p.display_name||p.email||"Unnamed user")}${me?" <span class=\"you\">(you)</span>":""}<small>${esc(p.email||"")}${p.joined_at?` · joined ${fmtDate(p.joined_at)}`:""}</small></div>${ctl}</div>`;
+  };
+  const draw = () => {
+    const nq = norm(q), shown = list.filter(p=>!nq || norm((p.display_name||"")+" "+(p.email||"")).includes(nq));
+    const counts = {owner:0, moderator:0, user:0}; list.forEach(p=>counts[p.role||"user"]++);
+    $("#pp-sum").textContent = list.length ? `${list.length} ${list.length===1?"person":"people"} · ${counts.owner+counts.moderator} moderator${counts.owner+counts.moderator===1?"":"s"} · ${counts.user} user${counts.user===1?"":"s"}` : "";
+    $("#pp-list").innerHTML = shown.length ? shown.map(row).join("") : `<p class="lede" style="font-size:13px">${list.length ? "No one matches." : "Loading…"}</p>`;
+    document.querySelectorAll("[data-role-for]").forEach(sel=>sel.addEventListener("change", async ()=>{
+      const id = sel.dataset.roleFor, role = sel.value, who = (list.find(p=>p.id===id)||{}).display_name || "This person";
+      sel.disabled = true;
+      const {error} = await S.sb.rpc("set_user_role", {p_user:id, p_role:role});
+      sel.disabled = false;
+      if (error){ toast("Couldn't change the role: " + error.message); await load(); return; }
+      toast(role==="moderator" ? `${who} is now a moderator` : `${who} is now a user`);
+      await loadRoles(); await load(); render();
+    }));
+  };
+  const load = async () => {
+    const {data, error} = await S.sb.rpc("list_app_people");
+    if (error){
+      list = Object.values(S.sbProfiles||{}).map(p=>({id:p.id, display_name:p.name, email:"", role:roleOfUser(p.id)}));
+      $("#pp-note").innerHTML = `Roles need the latest database update. <button class="linkbtn" data-act="db-help">Show me how</button>`;
+    } else list = data || [];
+    if (!list.some(p=>p.role==="owner")) $("#pp-note").innerHTML = `No owner is set yet. Run <b>make-me-owner.sql</b> in Supabase with your email to become the owner.`;
+    draw();
+  };
+  openSheet(`
+    <div class="sheet-h"><h3>People</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
+    <div class="sheet-b" data-noautofocus>
+      <p class="lede" style="font-size:13px;margin:0" id="pp-sum"></p>
+      <div class="sh-search">${ICON.search}<input id="pp-q" placeholder="Search by name or email" autocomplete="off" aria-label="Search people"></div>
+      <div class="sh-list" id="pp-list"></div>
+      <p class="lede" style="font-size:13px" id="pp-note">${S.isOwner ? "As the owner, you can make people moderators or users. Moderators can approve projects and leave review comments." : "Moderators approve projects and leave review comments. Only the owner can change roles."}</p>
+    </div>
+    <div class="sheet-f"><div class="spacer"></div><button class="btn primary" data-close>Done</button></div>`,
+  sh=>{
+    sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", closeSheet));
+    $("#pp-q").addEventListener("input", e=>{ q = e.target.value; draw(); });
+    sh.addEventListener("click", e=>{ if (e.target.closest('[data-act="db-help"]')){ closeSheet(); dbUpdateSheet(); } });
+    draw(); load();
+  });
+}
+
+/* ---------- Review comments ---------- */
+S.cmts = []; S.reviewMode = false;
+async function loadComments(){
+  if (!S.sb) return;
+  const [c, r] = await Promise.all([
+    S.sb.from("review_comments").select("id,assessment_id,anchor,anchor_label,body,author,status,created_at").order("created_at",{ascending:true}).limit(2000),
+    S.sb.from("review_replies").select("id,comment_id,kind,body,author,created_at").order("created_at",{ascending:true}).limit(5000)
+  ]);
+  if (c.error){ S.cmtsOff = true; return; }
+  S.cmtsOff = false;
+  const byC = {}; (r.data||[]).forEach(x=>{ (byC[x.comment_id] = byC[x.comment_id] || []).push(x); });
+  S.cmts = (c.data||[]).map(x=>({...x, replies:byC[x.id]||[]}));
+  fillComments(); refreshPop();
+  if (S.view.name==="history") { clearTimeout(S.cmtR); S.cmtR = setTimeout(render, 50); }
+}
+function commentsStart(){
+  if (!S.sb || S.cmtCh) return;
+  let t; const reload = () => { clearTimeout(t); t = setTimeout(loadComments, 300); };
+  try { S.cmtCh = S.sb.channel("eia-review")
+    .on("postgres_changes", {event:"*", schema:"public", table:"review_comments"}, reload)
+    .on("postgres_changes", {event:"*", schema:"public", table:"review_replies"}, reload).subscribe(); } catch(e){}
+}
+const threadsFor = (aid, anchor) => S.cmts.filter(c=>c.assessment_id===aid && c.anchor===anchor);
+const openCount = aid => S.cmts.filter(c=>c.assessment_id===aid && c.status==="open").length;
+function slot(aid, anchor, label){ return S.sb ? `<span class="cmt-slot" data-aid="${esc(aid)}" data-anchor="${esc(anchor)}" data-label="${esc(label)}"></span>` : ""; }
+function pinState(ts){ return ts.some(c=>c.status==="open") ? "open" : ts.some(c=>c.status==="rejected") ? "rejected" : "acknowledged"; }
+function fillComments(root){
+  (root || document).querySelectorAll(".cmt-slot").forEach(el=>{
+    const ts = threadsFor(el.dataset.aid, el.dataset.anchor);
+    if (ts.length){
+      const st = pinState(ts);
+      el.innerHTML = `<button type="button" class="cmt-pin st-${st}" aria-label="${ts.length} review comment${ts.length>1?"s":""} on ${esc(el.dataset.label)} (${st})">${ICON.msg}${ts.length>1?`<b>${ts.length}</b>`:""}</button>`;
+    } else if (S.isMod && S.reviewMode){
+      el.innerHTML = `<button type="button" class="cmt-pin add" aria-label="Add a review comment on ${esc(el.dataset.label)}">${ICON.plus}</button>`;
+    } else el.innerHTML = "";
+  });
+}
+
+// Popover: shows on hover (fades in), fades out when the pointer leaves.
+// A tap or click keeps it open so people can answer.
+let popT, popSlot = null, popPinned = false;
+function popEl(){ let p = $("#cmt-pop"); if (!p){ p = document.createElement("div"); p.id = "cmt-pop"; p.className = "cmt-pop"; p.setAttribute("role","dialog"); document.body.appendChild(p);
+  p.addEventListener("mouseenter", ()=>clearTimeout(popT)); p.addEventListener("mouseleave", ()=>{ if (!popPinned) schedClose(); }); p.addEventListener("click", popClick); } return p; }
+function schedClose(){ clearTimeout(popT); popT = setTimeout(closePop, 260); }
+function closePop(){ const p = $("#cmt-pop"); if (!p) return; if (p.contains(document.activeElement) && popPinned) return; p.classList.remove("show"); popSlot = null; popPinned = false; setTimeout(()=>{ if (!popSlot) p.hidden = true; }, 180); }
+function placePop(){
+  const p = $("#cmt-pop"); if (!p || !popSlot || !popSlot.isConnected){ closePop(); return; }
+  const r = popSlot.getBoundingClientRect(), w = Math.min(360, window.innerWidth - 24);
+  p.style.width = w + "px";
+  let left = Math.min(Math.max(12, r.left + r.width/2 - w/2), window.innerWidth - w - 12);
+  const below = window.innerHeight - r.bottom, h = p.offsetHeight;
+  const top = (below > h + 16 || below > r.top) ? r.bottom + 8 : Math.max(12, r.top - h - 8);
+  p.style.left = left + "px"; p.style.top = top + "px";
+}
+function canAnswer(aid){ const a = liveA(aid); return !!(a && canEditBase(a)); }
+function popHTML(aid, anchor, label){
+  const ts = threadsFor(aid, anchor), answer = canAnswer(aid);
+  const kindTxt = {acknowledge:`<span class="rk ack">${ICON.check} Acknowledged</span>`, reject:`<span class="rk rej">${ICON.close} Rejected</span>`, note:""};
+  const thread = c => `<article class="cmt" data-cid="${esc(c.id)}">
+      <header>${avatarHTML(c.author, nameOf(c.author)).replace('class="av"','class="av sm"')}<b>${esc(nameOf(c.author))}</b><span class="role-badge r-${roleOfUser(c.author)==="owner"?"owner":"moderator"}">${roleOfUser(c.author)==="owner"?"Owner":"Moderator"}</span><time>${ago(Date.parse(c.created_at))}</time><span class="cst st-${c.status}">${{open:"Open",acknowledged:"Acknowledged",rejected:"Rejected"}[c.status]}</span></header>
+      <p>${esc(c.body)}</p>
+      ${c.replies.map(r=>`<div class="rep">${avatarHTML(r.author, nameOf(r.author)).replace('class="av"','class="av sm"')}<div><div class="rep-h"><b>${esc(nameOf(r.author))}</b>${kindTxt[r.kind]}<time>${ago(Date.parse(r.created_at))}</time></div>${r.body?`<p>${esc(r.body)}</p>`:""}</div></div>`).join("")}
+      ${answer || S.isMod ? `<div class="cmt-act">
+        <textarea data-note placeholder="${answer?"Add a note for the moderator (optional)":"Reply"}" rows="2" maxlength="2000"></textarea>
+        <div class="cmt-btns">${answer ? `<button type="button" class="btn mini-btn ok" data-reply="acknowledge">${ICON.check} Acknowledge</button><button type="button" class="btn mini-btn no" data-reply="reject">${ICON.close} Reject</button>` : ""}
+          ${S.isMod && !answer ? `<button type="button" class="btn mini-btn" data-reply="note">Reply</button>` : ""}
+          ${S.isMod && answer ? `<button type="button" class="linkbtn" data-reply="note">Send as reply</button>` : ""}
+          ${S.isMod ? `<button type="button" class="linkbtn danger-link" data-resolve>Resolve</button>` : ""}</div>
+      </div>` : ""}
+    </article>`;
+  return `<div class="pop-h"><span>${ICON.msg}</span><b>${esc(label)}</b><button type="button" class="pop-x" data-popclose aria-label="Close">${ICON.close}</button></div>
+    <div class="pop-b">${ts.map(thread).join("") || `<p class="lede" style="font-size:13px;margin:0">No comments here yet.</p>`}
+    ${S.isMod ? `<div class="cmt-new"><textarea data-new placeholder="${ts.length?"Add another comment":"Write a review comment"}" rows="2" maxlength="2000"></textarea><div class="cmt-btns"><button type="button" class="btn mini-btn primary" data-post>Post comment</button></div></div>` : ""}</div>`;
+}
+function openPop(slotEl, pin){
+  clearTimeout(popT);
+  const p = popEl(); popSlot = slotEl; if (pin) popPinned = true;
+  p.dataset.aid = slotEl.dataset.aid; p.dataset.anchor = slotEl.dataset.anchor; p.dataset.label = slotEl.dataset.label;
+  p.innerHTML = popHTML(slotEl.dataset.aid, slotEl.dataset.anchor, slotEl.dataset.label);
+  p.hidden = false; placePop(); requestAnimationFrame(()=>p.classList.add("show"));
+  if (pin){ const t = p.querySelector("[data-new]") ; if (t && !threadsFor(slotEl.dataset.aid, slotEl.dataset.anchor).length) t.focus(); }
+}
+function refreshPop(){
+  const p = $("#cmt-pop"); if (!p || p.hidden || !popSlot) return;
+  if (p.contains(document.activeElement) && /TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.value) return;
+  const fresh = document.querySelector(`.cmt-slot[data-aid="${CSS.escape(p.dataset.aid)}"][data-anchor="${CSS.escape(p.dataset.anchor)}"]`);
+  if (fresh) popSlot = fresh;
+  p.innerHTML = popHTML(p.dataset.aid, p.dataset.anchor, p.dataset.label); placePop();
+}
+async function popClick(e){
+  const p = $("#cmt-pop"), aid = p.dataset.aid, anchor = p.dataset.anchor, label = p.dataset.label;
+  popPinned = true;
+  if (e.target.closest("[data-popclose]")){ popPinned = false; closePop(); return; }
+  const post = e.target.closest("[data-post]");
+  if (post){
+    const ta = p.querySelector("[data-new]"), body = ta.value.trim(); if (!body){ ta.focus(); return; }
+    post.disabled = true;
+    const {error} = await S.sb.from("review_comments").insert({assessment_id:aid, anchor, anchor_label:label, body, author:S.meId});
+    post.disabled = false;
+    if (error){ toast("Couldn't post: " + error.message); return; }
+    ta.value = ""; toast("Comment posted"); await loadComments(); return;
+  }
+  const rep = e.target.closest("[data-reply]");
+  if (rep){
+    const art = rep.closest(".cmt"), ta = art.querySelector("[data-note]"), body = (ta.value||"").trim(), kind = rep.dataset.reply;
+    if (kind==="note" && !body){ ta.focus(); toast("Write a reply first"); return; }
+    rep.disabled = true;
+    const {error} = await S.sb.from("review_replies").insert({comment_id:art.dataset.cid, kind, body, author:S.meId});
+    rep.disabled = false;
+    if (error){ toast("Couldn't send: " + error.message); return; }
+    ta.value = ""; toast(kind==="acknowledge" ? "Acknowledged" : kind==="reject" ? "Rejected" : "Reply sent"); await loadComments(); return;
+  }
+  const res = e.target.closest("[data-resolve]");
+  if (res){
+    if (!res.classList.contains("armed")){ res.classList.add("armed"); res.textContent = "Tap again to resolve and remove"; setTimeout(()=>{ if (res.isConnected){ res.classList.remove("armed"); res.textContent = "Resolve"; } }, 3000); return; }
+    const art = res.closest(".cmt");
+    const {error} = await S.sb.from("review_comments").delete().eq("id", art.dataset.cid);
+    if (error){ toast("Couldn't resolve: " + error.message); return; }
+    toast("Comment resolved"); await loadComments(); if (!threadsFor(aid, anchor).length){ popPinned = false; closePop(); }
+  }
+}
+// pins: hover to preview, click or tap to keep open
+document.addEventListener("mouseover", e=>{ const pin = e.target.closest(".cmt-pin"); if (!pin || popPinned) return; const sl = pin.closest(".cmt-slot"); clearTimeout(popT); popT = setTimeout(()=>openPop(sl, false), 90); });
+document.addEventListener("mouseout", e=>{ const pin = e.target.closest(".cmt-pin"); if (!pin || popPinned) return; if (e.relatedTarget && (e.relatedTarget.closest && (e.relatedTarget.closest(".cmt-pin")===pin || e.relatedTarget.closest("#cmt-pop")))) return; schedClose(); });
+document.addEventListener("click", e=>{
+  const pin = e.target.closest(".cmt-pin");
+  if (pin){ e.preventDefault(); e.stopPropagation(); const sl = pin.closest(".cmt-slot"); if (popPinned && popSlot===sl){ popPinned = false; closePop(); } else openPop(sl, true); return; }
+  if (!e.target.closest("#cmt-pop") && popPinned){ popPinned = false; closePop(); }
+}, true);
+window.addEventListener("scroll", ()=>{ if (popSlot) (popPinned ? placePop() : closePop()); }, {passive:true});
+window.addEventListener("resize", ()=>{ if (popSlot) placePop(); });
+document.addEventListener("keydown", e=>{ if (e.key==="Escape" && popSlot){ popPinned = false; closePop(); } });
+
 /* ---------- Detail ---------- */
 function detailHTML(full){
   const mine = canEditA(full);
@@ -1013,11 +1298,13 @@ function detailHTML(full){
   ${dbNoticeHTML()}
   <section class="d-head" id="d-head">
     <div class="meta"><span class="pres pres-here" data-pres-a="${esc(a.id)}" data-pres-names="1"></span><span class="who">${p.avatar?`<img src="${esc(p.avatar)}" alt="">`:""}<span>${esc(p.name)}</span></span>${statusHTML(st)}${a.location?`<span>${esc(a.location)}</span>`:""}<span>Updated ${ago(a.updatedAt)}</span></div>
-    <h2>${esc(a.title)}</h2>
+    <h2>${esc(a.title)}${slot(full.id, "details", "Project details")}</h2>
     ${S.sb ? accessHTML(full) : ""}
     ${a.project?`<div class="eyebrow">${esc(a.project)}</div>`:""}
     ${a.description?`<p class="desc">${esc(a.description)}</p>`:""}
-    ${mine?`<div class="status-pick" role="group" aria-label="Review status">${Object.entries(STATUS).map(([k,v])=>`<button data-status="${k}" aria-pressed="${st===k}">${v}</button>`).join("")}</div>`:""}
+    ${st==="approved" ? `<div class="approved-banner">${ICON.check}<div><b>Approved${a.approvedBy?` by ${esc(nameOf(a.approvedBy))}`:""}${a.approvedAt?` on ${fmtDate(a.approvedAt)}`:""}.</b> ${S.isMod ? "As a moderator you can still edit it or reopen it." : "It's locked; only a moderator can reopen it."}</div></div>` : ""}
+    ${(S.sb ? (S.isMod || (canEditBase(full) && st!=="approved")) : mine) ? `<div class="status-pick" role="group" aria-label="Review status">${Object.entries(STATUS).map(([k,v])=>{ const dis = S.sb && k==="approved" && !S.isMod; return `<button data-status="${k}" aria-pressed="${st===k}" ${dis?`disabled title="Only a moderator can approve"`:""}>${dis?ICON.lock+" ":""}${v}</button>`; }).join("")}</div>` : ""}
+    ${S.sb && S.isMod ? `<div class="review-bar"><button class="btn ${S.reviewMode?"primary":""}" data-act="review-mode" aria-pressed="${!!S.reviewMode}">${ICON.msg} ${S.reviewMode?"Review mode on":"Review"}</button>${S.reviewMode?`<span class="hint">Tap a <span class="cmt-pin add demo">${ICON.plus}</span> next to any section or impact to leave a comment.</span>`:""}</div>` : ""}
     <div class="d-actions">${actions}${s.n?`<button class="btn ghost" data-act="pdf">${ICON.pdf} PDF report</button><button class="btn ghost" data-act="csv">${ICON.dl} CSV</button>`:""}${S.comments?`<button class="btn ghost" data-act="comment">${ICON.msg} Comment</button>`:""}<button class="btn ghost" data-act="compare-this">${ICON.cmp} Compare</button><button class="btn ghost" data-act="analyse-this">${ICON.dash} Analyse</button></div>
   </section>
   ${phaseBar}
@@ -1027,17 +1314,17 @@ function detailHTML(full){
     <div class="kpi ${s.scored?band(s.rpeak):""}"><div class="lbl">Peak after measures</div><div class="val">${s.scored?`<span data-count="${s.rpeak}">0</span>`:"—"}</div></div>
     <div class="kpi high"><div class="lbl">High · Med · Low</div><div class="val"><span data-count="${s.bands.high}">0</span><span style="color:var(--muted)"> · </span><span style="color:var(--med)" data-count="${s.bands.med}">0</span><span style="color:var(--muted)"> · </span><span style="color:var(--low)" data-count="${s.bands.low}">0</span></div></div>
   </div>
-  ${s.n?`<div class="panel"><div class="panel-h"><h3>Significance by impact</h3><span class="hint">Log scale · dashed lines at 25 and 200</span></div>${chartHTML(a.impacts)}</div>
+  ${s.n?`<div class="panel"><div class="panel-h"><h3>Significance by impact${slot(full.id, "chart", "Significance by impact")}</h3><span class="hint">Log scale · dashed lines at 25 and 200</span></div>${chartHTML(a.impacts)}</div>
   <div class="dash-grid" style="margin-bottom:14px">
-    <div class="panel hm-panel ${S.hmMode==="both"?"wide":""}"><div class="panel-h"><h3>Risk heatmap</h3>
+    <div class="panel hm-panel ${S.hmMode==="both"?"wide":""}"><div class="panel-h"><h3>Risk heatmap${slot(full.id, "heatmap", "Risk heatmap")}</h3>
       <div class="seg hm-seg" role="group" aria-label="Show heatmap">${[["now","Current"],["after","After mitigation"],["both","Side by side"]].map(([k,l])=>`<button data-hm="${k}" aria-pressed="${(S.hmMode||"now")===k}">${l}</button>`).join("")}</div></div>
       <p class="hint" style="margin:-4px 0 10px">Magnitude (A) × severity (D) · tap a dot to open the impact · this switch also changes the evaluation matrix</p>
       ${heatmapHTML(a.impacts, S.hmMode||"now")}</div>
-    <div class="panel ${S.hmMode==="both"?"wide":""}"><div class="panel-h"><h3>Before and after mitigation</h3>${s.scored?`<span class="hint">Total H down ${s.cut}%</span>`:""}</div>${beforeAfterHTML(a.impacts)}</div>
+    <div class="panel ${S.hmMode==="both"?"wide":""}"><div class="panel-h"><h3>Before and after mitigation${slot(full.id, "beforeafter", "Before and after mitigation")}</h3>${s.scored?`<span class="hint">Total H down ${s.cut}%</span>`:""}</div>${beforeAfterHTML(a.impacts)}</div>
   </div>`:""}
-  <div class="panel"><div class="panel-h"><h3>Evaluation matrix</h3>${s.n?`<div class="seg hm-seg" role="group" aria-label="Show matrix">${[["now","Current"],["after","After mitigation"],["both","Side by side"]].map(([k,l])=>`<button data-hm="${k}" aria-pressed="${(S.hmMode||"now")===k}">${l}</button>`).join("")}</div>`:""}</div>
+  <div class="panel"><div class="panel-h"><h3>Evaluation matrix${slot(full.id, "matrix", "Evaluation matrix")}</h3>${s.n?`<div class="seg hm-seg" role="group" aria-label="Show matrix">${[["now","Current"],["after","After mitigation"],["both","Side by side"]].map(([k,l])=>`<button data-hm="${k}" aria-pressed="${(S.hmMode||"now")===k}">${l}</button>`).join("")}</div>`:""}</div>
     ${s.n?`<p class="hint" style="margin:-4px 0 10px">${mine?"Tap a row to edit":"Tap a row for details"} · this switch also changes the risk heatmap</p>`:""}${table}</div>
-  ${s.n?`<div class="panel"><div class="panel-h"><h3>Control & mitigation</h3><span class="hint">Highest risk first${s.evidence?` · ${s.evidence} evidence file${s.evidence>1?"s":""}`:""}</span></div><div class="imp-list">${imps.map(i=>{const h=H(i.sel), r=i.rsel?H(i.rsel):null;return `<button class="imp" data-imp="${esc(i.id)}"><b>${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span></b><span class="chip ${band(h)}">${BAND_NAME[band(h)]} · ${h.toLocaleString()}${r!=null?` → ${r.toLocaleString()}`:""}</span>${phasesOf(i).length?`<span class="phase-row">${phaseTags(i)}</span>`:""}${i.notes?`<p>${esc(i.notes)}</p>`:""}<p>${i.mitigation?`<strong>Measures:</strong> ${esc(i.mitigation)}`:(band(h)==="high"?`<strong style="color:var(--high)">No measures recorded yet.</strong> High impacts need control or mitigation.`:"No measures recorded.")}</p>${evThumbs(i)}</button>`;}).join("")}</div></div>`:""}
+  ${s.n?`<div class="panel"><div class="panel-h"><h3>Control & mitigation${slot(full.id, "measures", "Control & mitigation")}</h3><span class="hint">Highest risk first${s.evidence?` · ${s.evidence} evidence file${s.evidence>1?"s":""}`:""}</span></div><div class="imp-list">${imps.map(i=>{const h=H(i.sel), r=i.rsel?H(i.rsel):null;return `<button class="imp" data-imp="${esc(i.id)}"><b>${esc(i.name)}<span class="pres" data-pres-imp="${esc(i.id)}"></span></b><span class="chip ${band(h)}">${BAND_NAME[band(h)]} · ${h.toLocaleString()}${r!=null?` → ${r.toLocaleString()}`:""}</span>${phasesOf(i).length?`<span class="phase-row">${phaseTags(i)}</span>`:""}${i.notes?`<p>${esc(i.notes)}</p>`:""}<p>${i.mitigation?`<strong>Measures:</strong> ${esc(i.mitigation)}`:(band(h)==="high"?`<strong style="color:var(--high)">No measures recorded yet.</strong> High impacts need control or mitigation.`:"No measures recorded.")}</p>${evThumbs(i)}</button>`;}).join("")}</div></div>`:""}
   ${guideHTML()}`;
 }
 
@@ -1500,16 +1787,33 @@ function compareHTML(){
   if (!findKey(S.cmp.b) || S.cmp.b===S.cmp.a) S.cmp.b = keyOf(all.find(a=>keyOf(a)!==S.cmp.a));
   const A = findKey(S.cmp.a), B = findKey(S.cmp.b);
   const opt = sel => all.map(a=>`<option value="${esc(keyOf(a))}" ${keyOf(a)===sel?"selected":""}>${esc(a.title)}${isMine(a)?" (yours)":""}</option>`).join("");
-  const sa = summarize(A), sb = summarize(B);
-  const col = (x, s) => `<div class="cmp-col"><h3>${esc(x.title)}</h3><div class="who"><span>${esc(person(x.owner).name)}</span> ${statusHTML(x.status)}</div>${stripHTML(s.bands, s.n)}
-    <div class="cmp-stats"><div><div class="lbl">Impacts</div><div class="val" data-count="${s.n}">0</div></div><div><div class="lbl">Peak H</div><div class="val" style="color:var(--${s.n?band(s.peak):"fg"})" data-count="${s.peak}">0</div></div>
-    <div><div class="lbl">High</div><div class="val" style="color:var(--high)" data-count="${s.bands.high}">0</div></div><div><div class="lbl">After measures</div><div class="val">${s.scored?s.rpeak.toLocaleString():"—"}</div></div></div></div>`;
+  const sa = summarize(A), sb = summarize(B), mode = S.cmp.mode || "now";
+  const pk = (v, cls) => `<div class="val" style="color:var(--${cls})">${v}</div>`;
+  const stat = (lbl, html) => `<div><div class="lbl">${lbl}</div>${html}</div>`;
+  const arrow = (x, y, f) => `${f(x)} <span class="cmp-arr">→</span> ${f(y)}`;
+  const col = (x, s) => {
+    const peakR = s.n ? s.rpeak : 0, hiR = s.rbands.high;
+    let stats;
+    if (mode==="after") stats = stat("Impacts", `<div class="val" data-count="${s.n}">0</div>`) + stat("Peak H′", pk(s.n?peakR.toLocaleString():"–", s.n?band(peakR):"fg")) + stat("High after", pk(hiR, "high")) + stat("Risk reduction", pk(s.scored?s.cut+"%":"–", s.scored&&s.cut>0?"low":"fg"));
+    else if (mode==="both") stats = stat("Impacts", `<div class="val" data-count="${s.n}">0</div>`) + stat("Peak H → H′", `<div class="val sm">${arrow(s.peak, peakR, v=>`<span style="color:var(--${s.n?band(v):"fg"})">${v.toLocaleString()}</span>`)}</div>`) + stat("High → after", `<div class="val sm">${arrow(s.bands.high, hiR, v=>`<span style="color:var(--high)">${v}</span>`)}</div>`) + stat("Risk reduction", pk(s.scored?s.cut+"%":"–", s.scored&&s.cut>0?"low":"fg"));
+    else stats = stat("Impacts", `<div class="val" data-count="${s.n}">0</div>`) + stat("Peak H", `<div class="val" style="color:var(--${s.n?band(s.peak):"fg"})" data-count="${s.peak}">0</div>`) + stat("High", `<div class="val" style="color:var(--high)" data-count="${s.bands.high}">0</div>`) + stat("After measures", `<div class="val">${s.scored?s.rpeak.toLocaleString():"—"}</div>`);
+    const bands = mode==="after" ? s.rbands : s.bands;
+    return `<div class="cmp-col"><h3>${esc(x.title)}</h3><div class="who"><span>${esc(person(x.owner).name)}</span> ${statusHTML(x.status)}</div>${mode==="both" ? `${stripHTML(s.bands, s.n)}${stripHTML(s.rbands, s.n)}<div class="cmp-strip-l"><span>Current</span><span>After mitigation</span></div>` : stripHTML(bands, s.n)}
+    <div class="cmp-stats">${stats}</div>${s.n && s.scored<s.n && mode!=="now" ? `<p class="cmp-foot">${s.n-s.scored} impact${s.n-s.scored>1?"s have":" has"} no residual score yet and ${s.n-s.scored>1?"count":"counts"} as unchanged.</p>` : ""}</div>`;
+  };
   const names = new Map();
-  A.impacts.forEach(i=>{ const k=norm(i.name); names.set(k,{name:i.name, a:H(i.sel), b:null}); });
-  B.impacts.forEach(i=>{ const k=norm(i.name); const e=names.get(k)||{name:i.name,a:null,b:null}; e.b=H(i.sel); names.set(k,e); });
+  const put = (i, side) => { const k = norm(i.name); const e = names.get(k) || {name:i.name, a:null, b:null, ar:null, br:null, asc:false, bsc:false}; e[side] = H(i.sel); e[side+"r"] = HR(i); e[side+"sc"] = !!i.rsel; names.set(k, e); };
+  A.impacts.forEach(i=>put(i,"a")); B.impacts.forEach(i=>put(i,"b"));
   const rows = [...names.values()].sort((x,y)=>Math.max(y.a||0,y.b||0)-Math.max(x.a||0,x.b||0));
-  const cell = v => v==null ? `<td style="color:var(--muted)">—</td>` : `<td class="h ${band(v)}">${v.toLocaleString()}</td>`;
-  const diff = r => { if (r.a==null||r.b==null) return `<td><span class="diff eq">only in ${r.a==null?"B":"A"}</span></td>`; const d=r.b-r.a; return `<td><span class="diff ${d>0?"up":d<0?"down":"eq"}">${d>0?"+":""}${d.toLocaleString()}</span></td>`; };
+  const cell = (v, unscored) => v==null ? `<td style="color:var(--muted)">—</td>` : `<td class="h ${band(v)}${unscored?" cmp-uns":""}"${unscored?' title="No residual score yet: shown unchanged"':""}>${v.toLocaleString()}${unscored?"*":""}</td>`;
+  const pair = (h, r, sc) => h==null ? `<td style="color:var(--muted)">—</td>` : `<td class="cmp-pair"><span class="h ${band(h)}">${h.toLocaleString()}</span><span class="cmp-arr">→</span><span class="h ${band(r)}${sc?"":" cmp-uns"}"${sc?"":' title="No residual score yet"'}>${r.toLocaleString()}${sc?"":"*"}</span></td>`;
+  const diff = (x, y, onlyLbl) => { if (x==null||y==null) return `<td><span class="diff eq">only in ${x==null?"B":"A"}</span></td>`; const d = y-x; return `<td><span class="diff ${d>0?"up":d<0?"down":"eq"}">${d>0?"+":""}${d.toLocaleString()}</span></td>`; };
+  const head = mode==="after" ? `<th>Impact</th><th>H′ in A</th><th>H′ in B</th><th>Difference</th>`
+    : mode==="both" ? `<th>Impact</th><th>A: H → H′</th><th>B: H → H′</th><th>Difference after</th>`
+    : `<th>Impact</th><th>H in A</th><th>H in B</th><th>Difference</th>`;
+  const body = rows.map(r=> mode==="after" ? `<tr><td class="name">${esc(r.name)}</td>${cell(r.ar, r.a!=null && !r.asc)}${cell(r.br, r.b!=null && !r.bsc)}${diff(r.ar, r.br)}</tr>`
+    : mode==="both" ? `<tr><td class="name">${esc(r.name)}</td>${pair(r.a, r.ar, r.asc)}${pair(r.b, r.br, r.bsc)}${diff(r.ar, r.br)}</tr>`
+    : `<tr><td class="name">${esc(r.name)}</td>${cell(r.a)}${cell(r.b)}${diff(r.a, r.b)}</tr>`).join("");
   return `
   <p class="private-note">${ICON.lock} Your comparison is private and saved to your account.</p>
   <div class="cmp-pick">
@@ -1517,9 +1821,10 @@ function compareHTML(){
     <div class="vs">vs</div>
     <div class="field"><label for="cmp-b">Assessment B</label><select id="cmp-b">${opt(S.cmp.b)}</select></div>
   </div>
+  <div class="cmp-mode"><span class="lbl">Show</span><div class="seg" role="group" aria-label="Compare">${[["now","Current"],["after","After mitigation"],["both","Before and after"]].map(([k,l])=>`<button data-cmpmode="${k}" aria-pressed="${mode===k}">${l}</button>`).join("")}</div></div>
   <div class="cmp-cols">${col(A,sa)}${col(B,sb)}</div>
-  <div class="panel"><div class="panel-h"><h3>Impact by impact</h3><span class="hint">Matched by impact name · B minus A</span></div>
-    ${rows.length?`<div class="tbl-wrap"><table style="min-width:420px"><thead><tr><th>Impact</th><th>H in A</th><th>H in B</th><th>Difference</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="name">${esc(r.name)}</td>${cell(r.a)}${cell(r.b)}${diff(r)}</tr>`).join("")}</tbody></table></div>`:`<p class="lede">Neither assessment has impacts yet.</p>`}
+  <div class="panel"><div class="panel-h"><h3>Impact by impact</h3><span class="hint">Matched by impact name · ${mode==="now"?"B minus A":"B′ minus A′ (after mitigation)"}</span></div>
+    ${rows.length?`<div class="tbl-wrap"><table style="min-width:${mode==="both"?520:420}px"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${mode!=="now" && rows.some(r=>(r.a!=null&&!r.asc)||(r.b!=null&&!r.bsc)) ? `<p class="cmp-foot">* No residual score yet: shown unchanged.</p>` : ""}`:`<p class="lede">Neither assessment has impacts yet.</p>`}
   </div>`;
 }
 
@@ -1578,7 +1883,8 @@ function docsChanged(){
 }
 function saveState(id){ return S.pend.some(p=>p.id===id) ? "Saving…" : "All changes saved"; }
 function live(a, ops){
-  if (!a || !canEditA(a)){ toast("You have view-only access to this assessment"); return Promise.resolve(false); }
+  const statusOnly = ops.every(o=>o.op==="field" && o.key==="status");
+  if (!a || !(canEditA(a) || (statusOnly && S.isMod))){ toast(a && (a.status||"draft")==="approved" && !S.isMod ? "This assessment is approved and locked. A moderator can reopen it." : "You have view-only access to this assessment"); return Promise.resolve(false); }
   const id = a.id, r = itemRef(id); if (!r) return Promise.resolve(false);
   // offline copy, or database not updated yet: change the whole assessment
   if (!S.sb || S.patchOff){
@@ -1670,7 +1976,7 @@ function applySettings(x){
     S.dash.projects = Array.isArray(d.projects) ? d.projects : [];
     S.dash.phase = d.phase || ""; S.dash.category = d.category || ""; S.dash.status = d.status || "";
   }
-  const c = x.cmp || x.compare; if (c) S.cmp = {a:c.a||"", b:c.b||""};
+  const c = x.cmp || x.compare; if (c) S.cmp = {a:c.a||"", b:c.b||"", mode:["now","after","both"].includes(c.mode)?c.mode:"now"};
 }
 async function loadSettings(){
   let x = null; try { x = JSON.parse(localStorage.getItem(settingsKey()) || "null"); } catch(e){}
@@ -1684,7 +1990,7 @@ let ssT;
 function saveSettings(){
   clearTimeout(ssT);
   ssT = setTimeout(async ()=>{
-    const d = S.dash, dash = {charts:d.charts, projects:d.projects, phase:d.phase, category:d.category, status:d.status}, cmp = {a:S.cmp.a||"", b:S.cmp.b||""};
+    const d = S.dash, dash = {charts:d.charts, projects:d.projects, phase:d.phase, category:d.category, status:d.status}, cmp = {a:S.cmp.a||"", b:S.cmp.b||"", mode:S.cmp.mode||"now"};
     try { localStorage.setItem(settingsKey(), JSON.stringify({dash, cmp})); } catch(e){}
     if (S.sb && S.meId && !S.settingsOff){
       const {error} = await S.sb.from("user_settings").upsert({user_id:S.meId, dashboard:dash, compare:cmp, updated_at:new Date().toISOString()});
@@ -1801,7 +2107,7 @@ function impactSheet(a0, imp0, readOnly){
     ${!readOnly && !S.assets ? `<p class="lede" style="font-size:12px">Attaching files needs edit access to this app.</p>` : ""}
     ${readOnly && !ev.length ? `<p class="lede" style="font-size:13px">No evidence attached.</p>` : ""}`; };
   openSheet(`
-    <div class="sheet-h"><h3 id="imp-title">${esc(i0.name || "Impact")}</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
+    <div class="sheet-h"><h3 id="imp-title">${esc(i0.name || "Impact")}</h3>${slot(aid, "imp:"+impId, "Impact: "+(i0.name||""))}<button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
     <div class="sheet-b" id="imp-body" ${createdHere ? "" : "data-noautofocus"}>
       <div class="pres-banner" id="pres-sheet" hidden></div>
       ${readOnly?"":`<div class="field"><label for="i-name">Impact <span class="pres-f" data-pres-field="name"></span></label><input id="i-name" maxlength="80" placeholder="e.g. NOx emissions, dust, wastewater discharge" value="${esc(i0.name)}"></div>`}
@@ -1836,7 +2142,7 @@ function impactSheet(a0, imp0, readOnly){
       if (createdHere && !touched && I()) live(A(), [{op:"imp_del", imp:impId}]);
     };
     sh.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", close));
-    S.closeActive = close;
+    S.closeActive = close; fillComments(sh);
     const paintCrit = () => { const i = I(); const sel = mode==="now" ? i.sel : (i.rsel||i.sel);
       CRITERIA.forEach(c=>{ sh.querySelectorAll(`.opt[data-k="${c.k}"]`).forEach(o=>o.setAttribute("aria-checked", String(Number(o.dataset.idx)===sel[c.k]))); const sc = $("#sc-"+c.k); if (sc) sc.textContent = scoreOf(c.k, sel[c.k]); }); };
     const paint = (animate) => {
@@ -2038,17 +2344,18 @@ async function exportPDF(a, btn){
 
 /* ---------- Events ---------- */
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-act],[data-open],[data-tab],[data-imp],[data-status],[data-phase],[data-who],[data-hm]");
+  const t = e.target.closest("[data-act],[data-open],[data-tab],[data-imp],[data-status],[data-phase],[data-who],[data-hm],[data-cmpmode]");
   if (!t || t.closest("#layer")) return;
   if (t.dataset.tab){ S.view = {name:t.dataset.tab}; render(); return; }
   if (t.dataset.phase!=null){ S.phase = t.dataset.phase; render(); return; }
   if (t.dataset.who){ S.who = t.dataset.who; render(); return; }
+  if (t.dataset.cmpmode){ S.cmp.mode = t.dataset.cmpmode; saveSettings(); S.quietUntil = Date.now() + 600; render(); return; }
   if (t.dataset.hm){ S.hmMode = t.dataset.hm; try { localStorage.setItem("eia-hm", S.hmMode); } catch(e){} S.quietUntil = Date.now() + 600; render(); return; }
   if (t.dataset.open!=null){ S.phase=""; const [owner,id] = t.dataset.open.split("|"); S.view={name:"detail", owner, id}; window.scrollTo({top:0}); render(); return; }
   if (t.dataset.act==="db-help"){ dbUpdateSheet(); return; }
   const a = S.view.name==="detail" ? findA(S.view.owner, S.view.id) : null;
   if (t.dataset.imp && a){ const imp = a.impacts.find(i=>i.id===t.dataset.imp); if (imp) impactSheet(a, imp, !canEditA(a)); return; }
-  if (t.dataset.status && a && canEditA(a)){ const st = t.dataset.status; if ((a.status||"draft")===st) return; live(a, [{op:"field", key:"status", value:st}]).then(ok=>ok && toast("Marked " + STATUS[st])); return; }
+  if (t.dataset.status && a && canSetStatus(a, t.dataset.status)){ const st = t.dataset.status; if ((a.status||"draft")===st) return; live(a, [{op:"field", key:"status", value:st}]).then(ok=>ok && toast(st==="approved" ? "Approved. It now appears under Approved projects." : (a.status==="approved" ? "Reopened as " : "Marked ") + STATUS[st])); return; }
   const act = t.dataset.act;
   if (act==="home"){ S.view={name:"history"}; render(); }
   else if (act==="new") assessmentSheet(null);
@@ -2059,6 +2366,7 @@ document.addEventListener("click", e=>{
   else if (act==="csv" && a) exportCSV(a);
   else if (act==="pdf" && a) exportPDF(a, t);
   else if (act==="comment" && S.comments){ const el = $("#d-head"); S.comments.openComposer({element: el}).then(r=>{ if (r && r.opened===false) toast("Tap inside the app first, then try Comment again"); }).catch(()=>toast("Comments aren't available in this view")); }
+  else if (act==="review-mode" && S.isMod){ S.reviewMode = !S.reviewMode; render(); }
   else if (act==="share" && a && isMine(a)){ if (S.shareReady) shareSheet(a); else dbUpdateSheet(); }
   else if (act==="analyse-this" && a){ Object.assign(S.dash, {projects:[keyOf(a)], phase:"", category:"", status:""}); S.view={name:"dashboard"}; window.scrollTo({top:0}); render(); }
   else if (act==="compare-this" && a){ S.cmp.a = keyOf(a); S.cmp.b = ""; S.view={name:"compare"}; window.scrollTo({top:0}); render(); }
@@ -2222,10 +2530,12 @@ async function afterSignIn(u){
     },
     delete: async id => { await S.sb.storage.from("evidence").remove([id]); }
   };
-  $("#signout").hidden = false;
+  $("#signout").hidden = false; $("#people-btn").hidden = false;
   S.view = {name:"history"};
   await loadSettings();
+  await loadRoles();
   await loadAll();
+  loadComments(); commentsStart();
   if (!S.live){ S.live = S.sb.channel("eia-live").on("postgres_changes", {event:"*", schema:"public", table:"assessments"}, payload=>{
       const n = payload && payload.new;
       if (payload && payload.eventType==="UPDATE" && n && n.id && n.doc && itemRef(n.id)){
@@ -2236,6 +2546,7 @@ async function afterSignIn(u){
   presenceStart();
 }
 $("#signout").addEventListener("click", accountSheet);
+$("#people-btn").innerHTML = ICON.people; $("#people-btn").addEventListener("click", peopleSheet);
 
 /* ---------- Boot ---------- */
 async function boot(){

@@ -18,11 +18,14 @@ High impacts call for control or mitigation measures.
 - Live co-editing, like Canva: several people can edit the same assessment, even the same impact, at once; every change saves instantly and appears for everyone within a second
 - Presence: see who's online, who's viewing an assessment, and who's editing which impact or field
 - Canva-style sharing: the creator decides who can view and who can edit
+- Roles: an owner, moderators and users, listed in one tap under People; only the owner can make someone a moderator
+- Approval: only moderators can approve; approved projects are locked and listed in their own section on the home page
+- Review comments: moderators pin comments to any part of a project; they appear on hover, and editors answer with Acknowledge or Reject and a note
 - Several categories per impact (for example Air, Water and Soil & land), and several project phases: commissioning, operation, decommissioning
 - Residual risk after mitigation, with before-and-after comparison
 - Evaluation matrix and risk heatmap (magnitude × severity), each showing current scores, scores after mitigation, or both side by side with one shared switch; changed scores are highlighted
 - Private analysis dashboard, saved to each user's account: filter by project, phase, category and status; headline figures and automatic key findings; charts you configure yourself (measure, grouping, split, chart type, scale), including Pareto, radar criteria fingerprint, heatmap and scatter; download each chart as PNG or CSV, or all charts as one PDF
-- Side-by-side compare view, also private and saved per user
+- Compare two projects on current risk, risk after mitigation, or both; private and saved per user
 - Review status: Draft, Under review, Approved
 - Photo and file evidence for each impact
 - PDF report (with the evaluation matrix before and after mitigation) and CSV export (with current and residual A–G scores)
@@ -34,6 +37,7 @@ High impacts call for control or mitigation measures.
 |---|---|
 | `index.html` | The app, connected to Supabase for shared records and sign-in |
 | `supabase-setup.sql` | Creates the database tables, access rules and evidence storage |
+| `make-me-owner.sql` | Makes your account the app owner (run once, with your email) |
 | `offline.html` | A standalone copy that saves in the browser only, with backup and import |
 
 ## Scoring criteria
@@ -83,7 +87,28 @@ History has filters for **All**, **Created by me** and **Shared with me**.
 
 Evidence files are stored in a public folder, so anyone with a file's direct link can open it, even if the assessment is private.
 
-**Updating an existing project:** run `supabase-setup.sql` again in the SQL Editor. It is safe to re-run and adds the sharing, live co-editing and private workspace pieces. Existing assessments start as *Everyone in the app · Can view*, editable only by their creator.
+**Updating an existing project:** run `supabase-setup.sql` again in the SQL Editor. It is safe to re-run and adds the sharing, live co-editing, private workspace, roles, approval and review-comment pieces. Then run `make-me-owner.sql` once with your email. Existing assessments start as *Everyone in the app · Can view*, editable only by their creator.
+
+## Roles and approval
+
+| Role | Who | Can |
+|---|---|---|
+| Owner | You (set once with `make-me-owner.sql`) | Everything a moderator can, plus make people moderators or users |
+| Moderator | People the owner promotes | See every project, approve or reopen projects, leave review comments |
+| User | Everyone else | Create projects, share them, and set their own projects to Draft or Under review |
+
+- Tap the **People** icon at the top to see everyone and their role. Only the owner sees role pickers.
+- Only moderators can set **Approved**. An approved project is locked: nobody but a moderator can change it until a moderator reopens it (sets it back to Draft or Under review). The database records who approved it and when.
+- Approved projects appear under **Approved projects** on the home page; the rest appear under **In progress**.
+- These rules are enforced in the database (`app_roles`, `set_user_role`, `list_app_people` and the `assessments_review_guard` trigger), not just on screen.
+
+## Review comments
+
+- Moderators tap **Review** on a project to show a small **+** next to the title, each section (chart, heatmap, before and after, evaluation matrix, measures) and each impact. Tapping it opens a box to write a comment. Outside review mode the layout is unchanged.
+- A comment shows as a small speech-bubble icon in that spot: yellow while open, green when acknowledged, red when rejected, with a number when there are several. Hovering shows the comment, which fades away when the pointer leaves; tapping keeps it open (on phones, tap).
+- People who can edit the project answer with **Acknowledge** or **Reject**, with an optional note to the moderator. Moderators can reply and **Resolve** (remove) a comment.
+- Project cards on the home page show how many comments are still open.
+- Stored in `review_comments` and `review_replies`, visible only to people who can see the project and to moderators.
 
 ## Live co-editing
 

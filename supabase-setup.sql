@@ -23,6 +23,72 @@ create policy "Users edit their own profile"
   on public.profiles for update to authenticated
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
+-- 1b. Roles: owner (you), moderators, users --------------------------------
+-- Everyone is a "user" unless listed here. The owner is also a moderator and
+-- is the only person who can make someone a moderator or take it away.
+-- Set the owner once with make-me-owner.sql.
+create table if not exists public.app_roles (
+  user_id    uuid primary key references auth.users(id) on delete cascade,
+  role       text not null check (role in ('owner', 'moderator')),
+  granted_by uuid references auth.users(id) on delete set null,
+  granted_at timestamptz not null default now()
+);
+alter table public.app_roles enable row level security;
+drop policy if exists "Signed-in users can see roles" on public.app_roles;
+create policy "Signed-in users can see roles" on public.app_roles for select to authenticated using (true);
+revoke insert, update, delete on public.app_roles from authenticated, anon;
+
+create or replace function public.is_moderator() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.app_roles where user_id = auth.uid() and role in ('owner', 'moderator'));
+$$;
+create or replace function public.is_app_owner() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.app_roles where user_id = auth.uid() and role = 'owner');
+$$;
+revoke all on function public.is_moderator() from public, anon;
+revoke all on function public.is_app_owner() from public, anon;
+grant execute on function public.is_moderator() to authenticated;
+grant execute on function public.is_app_owner() to authenticated;
+
+-- Only the owner can make someone a moderator or a user again.
+create or replace function public.set_user_role(p_user uuid, p_role text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_app_owner() then
+    raise exception 'Only the app owner can change roles';
+  end if;
+  if p_user = auth.uid() then
+    raise exception 'You can''t change your own role';
+  end if;
+  if p_role = 'moderator' then
+    insert into public.app_roles (user_id, role, granted_by, granted_at)
+    values (p_user, 'moderator', auth.uid(), now())
+    on conflict (user_id) do update set role = 'moderator', granted_by = auth.uid(), granted_at = now();
+  elsif p_role = 'user' then
+    delete from public.app_roles where user_id = p_user and role = 'moderator';
+  else
+    raise exception 'Unknown role';
+  end if;
+end $$;
+revoke all on function public.set_user_role(uuid, text) from public, anon;
+grant execute on function public.set_user_role(uuid, text) to authenticated;
+
+-- Everyone in the app with their role, for the People list.
+create or replace function public.list_app_people()
+returns table(id uuid, display_name text, email text, role text, joined_at timestamptz)
+language sql stable security definer set search_path = public, auth as $$
+  select u.id, coalesce(p.display_name, ''), u.email::text, coalesce(r.role, 'user'), u.created_at
+    from auth.users u
+    left join public.profiles p on p.id = u.id
+    left join public.app_roles r on r.user_id = u.id
+   where auth.uid() is not null
+   order by case coalesce(r.role, 'user') when 'owner' then 0 when 'moderator' then 1 else 2 end,
+            lower(coalesce(nullif(p.display_name, ''), u.email));
+$$;
+revoke all on function public.list_app_people() from public, anon;
+grant execute on function public.list_app_people() to authenticated;
+
 -- 2. Assessments and sharing ---------------------------------------------
 -- The creator (owner) controls access, like sharing in Canva:
 --   access = 'private' : only the creator and the people they add
@@ -50,7 +116,8 @@ drop policy if exists "Read assessments shared with you" on public.assessments;
 create policy "Read assessments shared with you"
   on public.assessments for select to authenticated
   using (owner = (select auth.uid()) or access in ('view','edit')
-         or (select auth.uid()) = any(editors) or (select auth.uid()) = any(viewers));
+         or (select auth.uid()) = any(editors) or (select auth.uid()) = any(viewers)
+         or public.is_moderator());
 
 drop policy if exists "Authors create their own assessments" on public.assessments;
 create policy "Authors create their own assessments"
@@ -60,8 +127,8 @@ drop policy if exists "Only the author can edit" on public.assessments;
 drop policy if exists "Creator and editors can edit" on public.assessments;
 create policy "Creator and editors can edit"
   on public.assessments for update to authenticated
-  using      (owner = (select auth.uid()) or access = 'edit' or (select auth.uid()) = any(editors))
-  with check (owner = (select auth.uid()) or access = 'edit' or (select auth.uid()) = any(editors));
+  using      (owner = (select auth.uid()) or access = 'edit' or (select auth.uid()) = any(editors) or public.is_moderator())
+  with check (owner = (select auth.uid()) or access = 'edit' or (select auth.uid()) = any(editors) or public.is_moderator());
 
 drop policy if exists "Only the author can delete" on public.assessments;
 drop policy if exists "Only the creator can delete" on public.assessments;
@@ -72,6 +139,42 @@ create policy "Only the creator can delete"
 -- changed through set_assessment_sharing(), which checks the creator.
 revoke update on public.assessments from authenticated, anon;
 grant update (doc, updated_at) on public.assessments to authenticated;
+
+-- Approval: only moderators can approve. An approved assessment is locked:
+-- nobody but a moderator can change it until a moderator reopens it.
+create or replace function public.guard_assessment_review() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  old_s text; new_s text; m boolean := public.is_moderator();
+begin
+  new_s := coalesce(new.doc->>'status', 'draft');
+  if tg_op = 'INSERT' then
+    if new_s = 'approved' and not m then
+      new.doc := jsonb_set(new.doc, '{status}', '"draft"'::jsonb);
+    end if;
+    return new;
+  end if;
+  if old.doc is not distinct from new.doc then
+    return new;  -- sharing changes only
+  end if;
+  old_s := coalesce(old.doc->>'status', 'draft');
+  if old_s = 'approved' and not m then
+    raise exception 'This assessment is approved and locked. Only a moderator can reopen it.';
+  end if;
+  if new_s = 'approved' and old_s <> 'approved' then
+    if not m then
+      raise exception 'Only a moderator can approve an assessment.';
+    end if;
+    new.doc := jsonb_set(jsonb_set(new.doc, '{approvedBy}', to_jsonb(auth.uid()), true),
+                         '{approvedAt}', to_jsonb((extract(epoch from now()) * 1000)::bigint), true);
+  elsif new_s <> 'approved' and old_s = 'approved' then
+    new.doc := (new.doc - 'approvedBy') - 'approvedAt';
+  end if;
+  return new;
+end $$;
+drop trigger if exists assessments_review_guard on public.assessments;
+create trigger assessments_review_guard before insert or update on public.assessments
+  for each row execute function public.guard_assessment_review();
 
 create or replace function public.set_assessment_sharing(p_id text, p_access text, p_editors uuid[], p_viewers uuid[])
 returns void language plpgsql security definer set search_path = public as $$
@@ -179,7 +282,7 @@ begin
   end loop;
   d := jsonb_set(d, '{updatedAt}', to_jsonb((extract(epoch from now()) * 1000)::bigint), true);
   d := jsonb_set(d, '{updatedBy}', to_jsonb(auth.uid()), true);
-  update public.assessments set doc = d, updated_at = now() where id = p_id;
+  update public.assessments set doc = d, updated_at = now() where id = p_id returning doc into d;
   return d;
 end $$;
 revoke all on function public.apply_assessment_patch(text, jsonb) from public, anon;
@@ -202,9 +305,95 @@ drop policy if exists "Update your own settings" on public.user_settings;
 create policy "Update your own settings" on public.user_settings for update to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
+-- Review comments --------------------------------------------------------
+-- Moderators leave comments on any part of an assessment. People who can
+-- edit the assessment answer with Acknowledge or Reject and an optional note.
+create or replace function public.can_see_assessment(p_id text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select public.is_moderator() or exists (select 1 from public.assessments a where a.id = p_id
+    and (a.owner = auth.uid() or a.access in ('view', 'edit') or auth.uid() = any(a.editors) or auth.uid() = any(a.viewers)));
+$$;
+create or replace function public.can_edit_assessment(p_id text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.assessments a where a.id = p_id
+    and (a.owner = auth.uid() or a.access = 'edit' or auth.uid() = any(a.editors)));
+$$;
+revoke all on function public.can_see_assessment(text) from public, anon;
+revoke all on function public.can_edit_assessment(text) from public, anon;
+grant execute on function public.can_see_assessment(text) to authenticated;
+grant execute on function public.can_edit_assessment(text) to authenticated;
+
+create table if not exists public.review_comments (
+  id            uuid primary key default gen_random_uuid(),
+  assessment_id text not null references public.assessments(id) on delete cascade,
+  anchor        text not null default 'details',
+  anchor_label  text not null default '',
+  body          text not null check (length(body) between 1 and 2000),
+  author        uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  status        text not null default 'open' check (status in ('open', 'acknowledged', 'rejected')),
+  created_at    timestamptz not null default now()
+);
+create index if not exists review_comments_assessment_idx on public.review_comments(assessment_id);
+alter table public.review_comments enable row level security;
+revoke update on public.review_comments from authenticated, anon;
+
+drop policy if exists "See comments on assessments you can see" on public.review_comments;
+create policy "See comments on assessments you can see" on public.review_comments for select to authenticated
+  using (public.can_see_assessment(assessment_id));
+drop policy if exists "Moderators add comments" on public.review_comments;
+create policy "Moderators add comments" on public.review_comments for insert to authenticated
+  with check (public.is_moderator() and author = (select auth.uid()) and public.can_see_assessment(assessment_id));
+drop policy if exists "Moderators resolve comments" on public.review_comments;
+create policy "Moderators resolve comments" on public.review_comments for delete to authenticated
+  using (public.is_moderator());
+
+create table if not exists public.review_replies (
+  id         uuid primary key default gen_random_uuid(),
+  comment_id uuid not null references public.review_comments(id) on delete cascade,
+  kind       text not null check (kind in ('acknowledge', 'reject', 'note')),
+  body       text not null default '' check (length(body) <= 2000),
+  author     uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+create index if not exists review_replies_comment_idx on public.review_replies(comment_id);
+alter table public.review_replies enable row level security;
+revoke update on public.review_replies from authenticated, anon;
+
+drop policy if exists "See replies to comments you can see" on public.review_replies;
+create policy "See replies to comments you can see" on public.review_replies for select to authenticated
+  using (exists (select 1 from public.review_comments c where c.id = comment_id));
+drop policy if exists "Editors and moderators reply" on public.review_replies;
+create policy "Editors and moderators reply" on public.review_replies for insert to authenticated
+  with check (author = (select auth.uid()) and exists (select 1 from public.review_comments c where c.id = comment_id
+    and (public.can_edit_assessment(c.assessment_id) or (public.is_moderator() and kind = 'note'))));
+drop policy if exists "Authors delete their replies" on public.review_replies;
+create policy "Authors delete their replies" on public.review_replies for delete to authenticated
+  using (author = (select auth.uid()));
+
+-- An acknowledge or reject reply sets the comment's status.
+create or replace function public.review_reply_status() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.kind in ('acknowledge', 'reject') then
+    update public.review_comments
+       set status = case new.kind when 'acknowledge' then 'acknowledged' else 'rejected' end
+     where id = new.comment_id;
+  end if;
+  return new;
+end $$;
+drop trigger if exists review_replies_status on public.review_replies;
+create trigger review_replies_status after insert on public.review_replies
+  for each row execute function public.review_reply_status();
+
 -- Live updates: everyone sees changes as they happen
 do $$ begin
   alter publication supabase_realtime add table public.assessments;
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter publication supabase_realtime add table public.review_comments;
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter publication supabase_realtime add table public.review_replies;
 exception when duplicate_object then null; end $$;
 
 -- 3. Evidence files (photos, PDFs, data) ---------------------------------
