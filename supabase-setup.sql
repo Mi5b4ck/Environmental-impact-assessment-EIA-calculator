@@ -75,10 +75,11 @@ revoke all on function public.set_user_role(uuid, text) from public, anon;
 grant execute on function public.set_user_role(uuid, text) to authenticated;
 
 -- Everyone in the app with their role, for the People list.
+-- Emails are never returned here, so the People list can't reveal them.
 create or replace function public.list_app_people()
 returns table(id uuid, display_name text, email text, role text, joined_at timestamptz)
 language sql stable security definer set search_path = public, auth as $$
-  select u.id, coalesce(p.display_name, ''), u.email::text, coalesce(r.role, 'user'), u.created_at
+  select u.id, coalesce(nullif(p.display_name, ''), 'Unnamed user'), null::text, coalesce(r.role, 'user'), u.created_at
     from auth.users u
     left join public.profiles p on p.id = u.id
     left join public.app_roles r on r.user_id = u.id

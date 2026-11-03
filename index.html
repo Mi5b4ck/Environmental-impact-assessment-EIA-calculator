@@ -1098,12 +1098,12 @@ function peopleSheet(){
   const row = p => {
     const me = p.id===S.meId, r = p.role || "user";
     const ctl = S.isOwner && !me && r!=="owner"
-      ? `<select data-role-for="${esc(p.id)}" aria-label="Role for ${esc(p.display_name||p.email)}"><option value="user" ${r==="user"?"selected":""}>User</option><option value="moderator" ${r==="moderator"?"selected":""}>Moderator</option></select>`
+      ? `<select data-role-for="${esc(p.id)}" aria-label="Role for ${esc(p.display_name||"this person")}"><option value="user" ${r==="user"?"selected":""}>User</option><option value="moderator" ${r==="moderator"?"selected":""}>Moderator</option></select>`
       : `<span class="role-badge r-${r}">${ROLE_NAME[r]}</span>`;
-    return `<div class="sh-person">${avatarHTML(p.id, p.display_name||p.email)}<div class="sh-name">${esc(p.display_name||p.email||"Unnamed user")}${me?" <span class=\"you\">(you)</span>":""}<small>${esc(p.email||"")}${p.joined_at?` · joined ${fmtDate(p.joined_at)}`:""}</small></div>${ctl}</div>`;
+    return `<div class="sh-person">${avatarHTML(p.id, p.display_name||"?")}<div class="sh-name">${esc(p.display_name||"Unnamed user")}${me?" <span class=\"you\">(you)</span>":""}${p.joined_at?`<small>Joined ${fmtDate(p.joined_at)}</small>`:""}</div>${ctl}</div>`;
   };
   const draw = () => {
-    const nq = norm(q), shown = list.filter(p=>!nq || norm((p.display_name||"")+" "+(p.email||"")).includes(nq));
+    const nq = norm(q), shown = list.filter(p=>!nq || norm(p.display_name||"").includes(nq));
     const counts = {owner:0, moderator:0, user:0}; list.forEach(p=>counts[p.role||"user"]++);
     $("#pp-sum").textContent = list.length ? `${list.length} ${list.length===1?"person":"people"} · ${counts.owner+counts.moderator} moderator${counts.owner+counts.moderator===1?"":"s"} · ${counts.user} user${counts.user===1?"":"s"}` : "";
     $("#pp-list").innerHTML = shown.length ? shown.map(row).join("") : `<p class="lede" style="font-size:13px">${list.length ? "No one matches." : "Loading…"}</p>`;
@@ -1122,7 +1122,7 @@ function peopleSheet(){
     if (error){
       list = Object.values(S.sbProfiles||{}).map(p=>({id:p.id, display_name:p.name, email:"", role:roleOfUser(p.id)}));
       $("#pp-note").innerHTML = `Roles need the latest database update. <button class="linkbtn" data-act="db-help">Show me how</button>`;
-    } else list = data || [];
+    } else list = (data || []).map(p=>({...p, email:""}));
     if (!list.some(p=>p.role==="owner")) $("#pp-note").innerHTML = `No owner is set yet. Run <b>make-me-owner.sql</b> in Supabase with your email to become the owner.`;
     draw();
   };
@@ -1130,7 +1130,7 @@ function peopleSheet(){
     <div class="sheet-h"><h3>People</h3><button class="icon-btn" data-close aria-label="Close">${ICON.close}</button></div>
     <div class="sheet-b" data-noautofocus>
       <p class="lede" style="font-size:13px;margin:0" id="pp-sum"></p>
-      <div class="sh-search">${ICON.search}<input id="pp-q" placeholder="Search by name or email" autocomplete="off" aria-label="Search people"></div>
+      <div class="sh-search">${ICON.search}<input id="pp-q" placeholder="Search by name" autocomplete="off" aria-label="Search people by name"></div>
       <div class="sh-list" id="pp-list"></div>
       <p class="lede" style="font-size:13px" id="pp-note">${S.isOwner ? "As the owner, you can make people moderators or users. Moderators can approve projects and leave review comments." : "Moderators approve projects and leave review comments. Only the owner can change roles."}</p>
     </div>

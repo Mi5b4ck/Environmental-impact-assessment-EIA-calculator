@@ -97,7 +97,7 @@ Evidence files are stored in a public folder, so anyone with a file's direct lin
 | Moderator | People the owner promotes | See every project, approve or reopen projects, leave review comments |
 | User | Everyone else | Create projects, share them, and set their own projects to Draft or Under review |
 
-- Tap the **People** icon at the top to see everyone and their role. Only the owner sees role pickers.
+- Tap the **People** icon at the top to see everyone by name with their role and join date; emails are never shown there. Only the owner sees role pickers.
 - Only moderators can set **Approved**. An approved project is locked: nobody but a moderator can change it until a moderator reopens it (sets it back to Draft or Under review). The database records who approved it and when.
 - Approved projects appear under **Approved projects** on the home page; the rest appear under **In progress**.
 - These rules are enforced in the database (`app_roles`, `set_user_role`, `list_app_people` and the `assessments_review_guard` trigger), not just on screen.
